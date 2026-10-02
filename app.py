@@ -8,27 +8,27 @@ app.config.from_object(Config)
 
 @app.route("/")
 def index():
-    """Main Dashboard with 4-Day Roadmap and current progress."""
+    """Main Dashboard with security modules overview and status."""
     return render_template("index.html")
 
 @app.route("/lab/auth-bypass")
 def auth_bypass_lab():
-    """Day 1: Authentication Bypass Exploitation & Query Visualizer Lab."""
+    """Module 1: Authentication Bypass Exploitation & Query Visualizer Lab."""
     return render_template("auth_bypass.html")
 
 @app.route("/lab/union-based")
 def union_based_lab():
-    """Day 2: Union-Based SQLi & Schema Enumeration (Scheduled for Part 2)."""
+    """Module 2: Union-Based SQLi & Schema Enumeration Laboratory."""
     return render_template("union_based.html")
 
 @app.route("/lab/error-blind")
 def error_blind_lab():
-    """Day 3: Error-Based & Blind/Time-Based SQLi (Scheduled for Part 3)."""
+    """Module 3: Error-Based & Blind/Time-Based SQLi Laboratory."""
     return render_template("error_blind.html")
 
 @app.route("/lab/evasion-audit")
 def evasion_audit_lab():
-    """Day 4: Second-Order SQLi, WAF Evasion & SAST Auditor (Scheduled for Part 4)."""
+    """Module 4: Filter Evasion & SAST Remediation Toolkit."""
     return render_template("evasion_audit.html")
 
 @app.route("/api/auth/test", methods=["POST"])

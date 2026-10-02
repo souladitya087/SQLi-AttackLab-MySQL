@@ -89,7 +89,7 @@ def execute_auth_attempt(username, password, scenario="tautology", mode="vulnera
                         if user["role"] == "admin":
                             result["flag"] = "FLAG{mysql_auth_tautology_bypass_mastered}"
 
-                log_audit_query("Day 1: Auth Bypass", query, False, "SUCCESS" if user else "AUTH_FAIL", None, client_ip)
+                log_audit_query("Module 1: Auth Bypass", query, False, "SUCCESS" if user else "AUTH_FAIL", None, client_ip)
 
             else:
                 # SECURE MODE: Parameterized Prepared Statements
@@ -112,12 +112,12 @@ def execute_auth_attempt(username, password, scenario="tautology", mode="vulnera
                     result["success"] = False
                     result["bypassed"] = False
 
-                log_audit_query("Day 1: Auth Bypass", query, True, "SUCCESS" if user else "AUTH_FAIL", None, client_ip)
+                log_audit_query("Module 1: Auth Bypass", query, True, "SUCCESS" if user else "AUTH_FAIL", None, client_ip)
 
     except pymysql.MySQLError as err:
         error_code, error_msg = err.args
         result["error"] = f"MySQL Error [{error_code}]: {error_msg}"
-        log_audit_query("Day 1: Auth Bypass", result.get("constructed_query", ""), mode == "secure", "MYSQL_ERROR", result["error"], client_ip)
+        log_audit_query("Module 1: Auth Bypass", result.get("constructed_query", ""), mode == "secure", "MYSQL_ERROR", result["error"], client_ip)
     except Exception as e:
         result["error"] = f"System Error: {str(e)}"
     finally:

@@ -1,150 +1,180 @@
-# 🛡️ SQLi-AttackLab-MySQL: Hands-On SQL Injection & Mitigation Testbed
+# 🛡️ SQLi-AttackLab: Advanced SQL Injection Exploitation & Defense Suite
 
-[![MySQL](https://img.shields.io/badge/Database-MySQL%208.0-blue.svg?logo=mysql&logoColor=white)](https://www.mysql.com/)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-brightgreen.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Framework-Flask%203.x-lightgrey.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![Project Plan](https://img.shields.io/badge/Plan-4--Day%20Hands--On%20Execution-orange.svg)](#-4-day-project-roadmap)
-[![OWASP](https://img.shields.io/badge/OWASP-A03%3A2021--Injection-red.svg)](https://owasp.org/Top10/A03_2021-Injection/)
+[![Database](https://img.shields.io/badge/Database-MySQL%208.0-00758F.svg?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Framework](https://img.shields.io/badge/Framework-Flask%203.x-000000.svg?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Standard](https://img.shields.io/badge/Standard-OWASP%20Top%2010%20(A03%3A2021)-E0234E.svg?style=for-the-badge)](https://owasp.org/Top10/A03_2021-Injection/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-An interactive, deep-dive offensive and defensive security training environment designed to demonstrate real-world **SQL Injection (SQLi) attack techniques** and **industry-standard mitigations** against **MySQL 8.0**.
-
----
-
-## 🎯 Executive Overview & Business Case
-
-Modern web applications depend heavily on database interactions to store and retrieve business data. Insecure dynamic SQL query construction continues to be a premier vulnerability, enabling unauthorized data disclosure, administrative account takeover, and system compromise.
-
-This repository implements a 4-part hands-on laboratory aligned with professional application security standards and the business case for secure software development (SSDLC).
+An interactive, enterprise-grade penetration testing and application security laboratory engineered to demonstrate real-world **SQL Injection (SQLi) attack mechanics**, AST query manipulation, database enumeration, and defense-in-depth mitigations against **MySQL 8.0**.
 
 ---
 
-## 📅 4-Day Project Execution Roadmap
-
-| Phase | Module | Focus Area | Status |
-| :--- | :--- | :--- | :--- |
-| **Day 1** | **Authentication Bypass & Query Logic** | Delimiter breaking, boolean tautology (`' OR 1=1`), MySQL inline comments (`-- `, `#`), and prepared statement comparisons. | **Completed & Shipped** ✅ |
-| **Day 2** | **Union-Based & Schema Enumeration** | Column count determination (`ORDER BY n`), data reflection discovery, MySQL `information_schema` dumping, and secret exfiltration. | Scheduled for Day 2 📅 |
-| **Day 3** | **Error-Based & Blind/Time-Based SQLi** | MySQL error functions (`EXTRACTVALUE`, `UPDATEXML`), boolean character extraction, and `SLEEP()` response time latency visualizer. | Scheduled for Day 3 📅 |
-| **Day 4** | **Second-Order, WAF Evasion & SAST Toolkit** | Stored SQLi, comment nesting / encoding filter bypass, static code query linter, and audit report generator. | Scheduled for Day 4 📅 |
+## 📑 Table of Contents
+- [Executive Overview](#-executive-overview)
+- [Architecture & System Design](#-architecture--system-design)
+- [Security Modules](#-security-modules)
+  - [Module 1: Authentication Bypass & Query Logic Manipulation](#module-1-authentication-bypass--query-logic-manipulation)
+  - [Module 2: Union-Based Injection & Schema Enumeration](#module-2-union-based-injection--schema-enumeration)
+  - [Module 3: Error-Based & Blind/Time-Based Inference](#module-3-error-based--blindtime-based-inference)
+  - [Module 4: Advanced Filter Evasion & Static Code Analysis (SAST)](#module-4-advanced-filter-evasion--static-code-analysis-sast)
+- [Installation & Quickstart](#-installation--quickstart)
+- [Database Schema Architecture](#-database-schema-architecture)
+- [Mitigation Analysis: Prepared Statements](#-mitigation-analysis-prepared-statements)
+- [Security & Ethics Disclaimer](#-security--ethics-disclaimer)
 
 ---
 
-## 🚀 Quickstart & Setup
+## 🎯 Executive Overview
 
-### 1. Prerequisites
-* Python 3.10+ installed
-* MySQL Server 8.0 installed and running locally on port 3306
+Despite decades of awareness, **SQL Injection (CWE-89)** remains one of the most destructive web application security vulnerabilities. Poorly sanitized inputs in data access layers allow adversaries to subvert application logic, read unauthorized business records, escalate privileges, and compromise database engines.
 
-### 2. Clone & Install Dependencies
+**SQLi-AttackLab** provides security researchers, penetration testers, and software engineers with a realistic, sandboxed environment to examine query exploitation behaviors side-by-side with industry-standard remediation techniques.
+
+```
+                              ┌────────────────────────────────────────┐
+                              │           Attacker / Client            │
+                              └───────────────────┬────────────────────┘
+                                                  │ HTTP POST (Payload)
+                                                  ▼
+                              ┌────────────────────────────────────────┐
+                              │         Flask Application Engine       │
+                              ├───────────────────┬────────────────────┤
+                              │ Vulnerable Mode   │ Remediated Mode    │
+                              │ (Dynamic String)  │ (Prepared Stmts)   │
+                              └─────────┬─────────┴──────────┬─────────┘
+                    Raw Interpolated SQL│                    │ Parameterized Query + Bind Vars
+                                        ▼                    ▼
+                              ┌────────────────────────────────────────┐
+                              │            MySQL 8.0 Server            │
+                              │   - Parser & AST Engine                │
+                              │   - Query Execution Plan               │
+                              │   - Audit Logger (`query_audit_logs`)  │
+                              └────────────────────────────────────────┘
+```
+
+---
+
+## 🏛️ Security Modules
+
+The platform is organized into four modular vulnerability laboratories:
+
+### Module 1: Authentication Bypass & Query Logic Manipulation
+* **Tautology Injections**: Exploits delimiter escapes (`'`) and boolean logic (`OR 1=1`) to force predicates to evaluate to `TRUE`.
+* **Inline Comment Truncation**: Utilizes MySQL comment markers (`-- `, `#`, `/* ... */`) to discard subsequent password verification checks.
+* **Parentheses & Bracket Balancing**: Demonstrates how nested query conditions (`WHERE (user = '...') AND (pass = '...')`) require structured quote-bracket termination (`') OR ('1'='1`).
+* **Live Query Inspector**: Side-by-side AST breakdown highlighting injected keywords vs. literal strings.
+
+### Module 2: Union-Based Injection & Schema Enumeration
+* **Column Count Discovery**: Algorithmic projection testing via `ORDER BY n` and `UNION SELECT NULL` vectors.
+* **Reflection Point Mapping**: Locating data-type compatible fields that reflect dynamically on the client interface.
+* **Metadata & Schema Dumping**: Harvesting system catalog information directly from `information_schema.tables` and `information_schema.columns`.
+* **Confidential Data Exfiltration**: Targeted extraction of administrative tokens, API keys, and sensitive business entities.
+
+### Module 3: Error-Based & Blind/Time-Based Inference
+* **XPath / Error Disclosure**: Triggering deliberate syntax faults via MySQL XML functions (`EXTRACTVALUE()`, `UPDATEXML()`) to exfiltrate query output inside error messages.
+* **Boolean Blind Extraction**: Algorithmic binary-search extraction using `SUBSTRING()` and `ASCII()` comparisons.
+* **Time-Based Side-Channel**: Precision latency testing via `SLEEP()` and `BENCHMARK()` with millisecond visual response profiling.
+
+### Module 4: Advanced Filter Evasion & Static Code Analysis (SAST)
+* **Second-Order Injections**: Demonstrating stored payload vectors that trigger during deferred background transactions.
+* **WAF & Filter Bypass**: Circumventing naive signature filters using comment-nesting (`/**/`), alternative whitespace, and URL/hex encodings.
+* **Static Query Auditor (SAST)**: Developer workbench that detects unsafe dynamic string formatting and auto-converts queries to parameterized equivalents.
+* **Audit Reporting**: Generates structured vulnerability assessments formatted to OWASP compliance standards.
+
+---
+
+## ⚡ Installation & Quickstart
+
+### Prerequisites
+* **Python 3.10+**
+* **MySQL Server 8.0+** running locally (or via Docker)
+
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/souladitya087/SQLi-AttackLab-MySQL.git
 cd SQLi-AttackLab-MySQL
+```
+
+### 2. Install Python Dependencies
+```bash
 pip install -r requirements.txt
 ```
 
-### 3. Configure Database Credentials (Optional)
-If your MySQL root password differs from `root`, create a `.env` file (or set environment variables):
+### 3. Environment Configuration
+The application defaults to `root:root` on `localhost:3306`. To customize credentials, create a `.env` file:
 ```env
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USER=root
-DB_PASS=your_mysql_password
+DB_PASS=your_secure_password
 DB_NAME=sqli_lab_db
+SECRET_KEY=your_random_secret_key
 ```
 
-### 4. Initialize Database Schema & Seed Data
-Run the automated initialization script to provision `sqli_lab_db`, challenge flags, and sample user profiles:
+### 4. Initialize Database & Seed Assets
+Run the automated schema generator to provision tables, mock assets, and challenge flags:
 ```bash
 python init_db.py
 ```
 
-### 5. Launch the Security Lab
+### 5. Launch the Security Console
 ```bash
 python app.py
 ```
-Open your browser and navigate to: **`http://127.0.0.1:5000`**
+Open your browser at **`http://127.0.0.1:5000`** to access the dashboard.
 
 ---
 
-## 🔬 Day 1 Deep-Dive: Authentication Bypass Lab
+## 🗄️ Database Schema Architecture
 
-### Scenario 1.1: Classic Tautology (`' OR 1=1 -- `)
-* **Vulnerable Query Pattern**:
-  ```sql
-  SELECT id, username, full_name, email, role, api_key 
-  FROM users 
-  WHERE username = '{username}' AND password = '{password}' LIMIT 1
-  ```
-* **Attack Payload**:
-  ```sql
-  ' OR 1=1 -- 
-  ```
-* **Resulting Executed Query**:
-  ```sql
-  SELECT id, username, full_name, email, role, api_key 
-  FROM users 
-  WHERE username = '' OR 1=1 -- ' AND password = '...' LIMIT 1
-  ```
-* **Under the Hood**:
-  The injected single quote `'` closes the string literal. The `OR 1=1` ensures the `WHERE` condition evaluates to `TRUE` for every row. The `-- ` truncates the remainder of the query. MySQL returns the first matching record (the `admin` account), granting full access.
+The laboratory provisions a dedicated, segregated MySQL database (`sqli_lab_db`):
 
-### Scenario 1.2: Comment Truncation & Account Impersonation
-* **Payload**:
-  ```sql
-  admin' -- 
-  ```
-  *(or MySQL hash syntax)*:
-  ```sql
-  admin' #
-  ```
-* **Resulting Executed Query**:
-  ```sql
-  SELECT id, username, full_name, email, role, api_key 
-  FROM users 
-  WHERE username = 'admin' -- ' AND password = '...' LIMIT 1
-  ```
-* **Under the Hood**:
-  Targets a specific user without knowing their password. The database validates that `username = 'admin'`, while the password check is entirely discarded by the parser.
-
-### Scenario 1.3: Parenthesized Clause Balancing
-* **Payload**:
-  ```sql
-  ') OR ('1'='1
-  ```
-* **Resulting Executed Query**:
-  ```sql
-  SELECT * FROM users WHERE (username = '') OR ('1'='1') AND (password = '...') LIMIT 1
-  ```
-* **Under the Hood**:
-  Demonstrates how attackers inspect MySQL syntax errors to determine bracket/parenthesis balancing requirements.
+| Table | Purpose | Sample Schema Columns |
+| :--- | :--- | :--- |
+| `users` | Primary authentication records | `id`, `username`, `password`, `role`, `email`, `api_key` |
+| `products` | E-commerce catalog for UNION extraction | `id`, `name`, `category`, `price`, `stock`, `description` |
+| `system_secrets` | Restricted flags and tokens for challenges | `id`, `secret_name`, `secret_value`, `classification` |
+| `query_audit_logs` | Real-time security telemetry | `id`, `lab_module`, `executed_query`, `is_parameterized`, `execution_status`, `timestamp` |
 
 ---
 
-## 🛡️ Mitigation Comparison: Prepared Statements
+## 🛡️ Mitigation Analysis: Prepared Statements
 
-Toggle the lab to **Remediated (Prepared)** mode to test the exact same attack strings:
+Every module features a dual-engine architecture permitting real-time comparison between vulnerable and secure implementations.
 
+### Insecure Dynamic Concatenation (Vulnerable)
 ```python
-# Secure implementation in PyMySQL / MySQL Connector:
-query = "SELECT id, username, full_name, email, role, api_key FROM users WHERE username = %s AND password = %s LIMIT 1"
+# Unsafe dynamic string formatting:
+query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'"
+cursor.execute(query)
+```
+* **Failure Mode**: The MySQL query compiler treats user input as executable SQL syntax tokens.
+
+### Parameterized Prepared Statements (Remediated)
+```python
+# Secure parameter binding:
+query = "SELECT * FROM users WHERE username = %s AND password = %s"
 cursor.execute(query, (username, password))
 ```
-
-* **Why it works**:
-  Prepared statements send the query template to the MySQL engine first, compiling the execution tree. User inputs are transmitted separately across the wire in a parameter block and treated strictly as data literals. No matter what characters (`'`, `--`, `OR 1=1`) are injected, they cannot alter the syntax structure.
+* **Defense Mechanism**: The statement template is parsed and compiled by the database server *prior* to receiving parameters. Input values are transmitted in a discrete data channel and treated strictly as literal literals, preventing syntax alteration regardless of payload complexity.
 
 ---
 
-## 🗄️ MySQL Database Architecture
+## 🧪 Automated Verification Suite
 
-The lab operates on dedicated MySQL 8.0 tables:
-* `users`: Holds usernames, roles (`admin`, `analyst`, `user`), passwords, and simulated API tokens.
-* `products`: Pre-seeded catalog items for Day 2 union attacks.
-* `system_secrets`: Confidential flags and credentials for exfiltration challenges.
-* `query_audit_logs`: Real-time audit log capturing every SQL query, parameterization flag, and execution status.
+Run automated unit and integration tests to verify platform stability:
+```bash
+python test_app.py
+```
 
 ---
 
-## ⚠️ Security & Educational Disclaimer
+## ⚠️ Security & Ethics Disclaimer
 
-This software is strictly intended for **educational, security research, and defensive application testing** within authorized local environments. Do not execute attack techniques or test tools against systems without explicit written consent.
+This project is created strictly for **educational, security research, and authorized application auditing purposes**. The authors assume no liability for misuse of the techniques described herein. Always obtain explicit written authorization before conducting vulnerability assessments against third-party systems.
+
+---
+
+## 📜 License
+This project is licensed under the [MIT License](LICENSE).

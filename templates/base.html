@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}SQLi AttackLab (MySQL){% endblock %}</title>
+    <title>{% block title %}SQLi-AttackLab | MySQL Security Suite{% endblock %}</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -61,26 +61,26 @@
                     </a>
                 </div>
 
-                <!-- Navigation Tabs (4 Parts) -->
+                <!-- Navigation Tabs (Modular Architecture) -->
                 <div class="hidden md:flex items-center space-x-1">
                     <a href="/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition">
                         Overview
                     </a>
-                    <a href="/lab/auth-bypass" class="px-3 py-2 rounded-md text-sm font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 flex items-center space-x-1">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-1"></span>
-                        Day 1: Auth Bypass
+                    <a href="/lab/auth-bypass" class="px-3 py-2 rounded-md text-sm font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 flex items-center space-x-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>Auth Bypass</span>
                     </a>
-                    <a href="/lab/union-based" class="px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition flex items-center">
-                        <span class="text-xs px-1.5 py-0.2 mr-1.5 rounded bg-gray-800 text-gray-400">Part 2</span>
-                        Union-Based
+                    <a href="/lab/union-based" class="px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition flex items-center space-x-1.5">
+                        <span class="text-[11px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 font-mono">Mod 2</span>
+                        <span>Union Extraction</span>
                     </a>
-                    <a href="/lab/error-blind" class="px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition flex items-center">
-                        <span class="text-xs px-1.5 py-0.2 mr-1.5 rounded bg-gray-800 text-gray-400">Part 3</span>
-                        Error & Blind
+                    <a href="/lab/error-blind" class="px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition flex items-center space-x-1.5">
+                        <span class="text-[11px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 font-mono">Mod 3</span>
+                        <span>Error & Blind</span>
                     </a>
-                    <a href="/lab/evasion-audit" class="px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition flex items-center">
-                        <span class="text-xs px-1.5 py-0.2 mr-1.5 rounded bg-gray-800 text-gray-400">Part 4</span>
-                        Evasion & Audit
+                    <a href="/lab/evasion-audit" class="px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition flex items-center space-x-1.5">
+                        <span class="text-[11px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 font-mono">Mod 4</span>
+                        <span>Evasion & SAST</span>
                     </a>
                 </div>
 
@@ -104,13 +104,14 @@
     <footer class="bg-[#111827] border-t border-gray-800 py-4 text-xs text-gray-500">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
             <div>
-                <strong>SQLi AttackLab</strong> &mdash; 4-Day Hands-on Security & Exploitation Lab for MySQL 8.0
+                <strong>SQLi-AttackLab</strong> &mdash; Advanced SQL Injection Exploitation & Defense Engineering Suite for MySQL 8.0
             </div>
             <div class="flex items-center space-x-4">
-                <span class="text-emerald-500">Day 1: Completed</span>
-                <span>Day 2: Union-Based</span>
-                <span>Day 3: Error & Blind</span>
-                <span>Day 4: Evasion & Audit</span>
+                <span class="text-emerald-400 font-mono">OWASP A03:2021 Compliant</span>
+                <a href="https://github.com/souladitya087/SQLi-AttackLab-MySQL" target="_blank" class="hover:text-gray-300 transition flex items-center space-x-1">
+                    <i data-lucide="github" class="w-3.5 h-3.5"></i>
+                    <span>GitHub</span>
+                </a>
             </div>
         </div>
     </footer>

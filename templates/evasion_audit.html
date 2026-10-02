@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Day 4: Evasion & SAST Auditor | SQLi AttackLab (MySQL){% endblock %}
+{% block title %}Module 4: Filter Evasion & SAST | SQLi-AttackLab (MySQL){% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto space-y-6">
@@ -8,14 +8,14 @@
     <div class="pb-4 border-b border-gray-800 flex items-center justify-between">
         <div>
             <div class="flex items-center space-x-2">
-                <span class="text-xs font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-400 uppercase font-mono">Part 4</span>
-                <span class="text-xs text-purple-400 font-mono">Scheduled for Day 4</span>
+                <span class="text-xs font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 uppercase font-mono">Module 4</span>
+                <span class="text-xs text-gray-400 font-mono">In Development</span>
             </div>
             <h1 class="text-2xl font-black text-white mt-1">WAF Evasion, Second-Order SQLi & SAST Remediation</h1>
             <p class="text-xs text-gray-400 mt-0.5">Bypass naive signature filters, test second-order storage flaws, and run static code analysis.</p>
         </div>
         <a href="/lab/auth-bypass" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold text-xs transition">
-            Go to Day 1 Lab &rarr;
+            Launch Module 1 Lab &rarr;
         </a>
     </div>
 
@@ -23,12 +23,12 @@
     <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
         <h2 class="text-lg font-bold text-white flex items-center space-x-2">
             <i data-lucide="shield-check" class="w-5 h-5 text-purple-400"></i>
-            <span>Part 4 Technical Syllabus & Modules</span>
+            <span>Module 4 Architecture & Defense Vectors</span>
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-purple-400">Module 4.1</div>
+                <div class="text-xs font-mono font-bold text-purple-400">Section 4.1</div>
                 <div class="text-sm font-bold text-white">Second-Order Stored Injection</div>
                 <p class="text-xs text-gray-400 leading-relaxed">
                     Injecting a payload that stores safely in registration, but executes maliciously when later read by an administrative report query.
@@ -36,7 +36,7 @@
             </div>
 
             <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-purple-400">Module 4.2</div>
+                <div class="text-xs font-mono font-bold text-purple-400">Section 4.2</div>
                 <div class="text-sm font-bold text-white">WAF Filter Evasion Sandbox</div>
                 <p class="text-xs text-gray-400 leading-relaxed">
                     Testing techniques to circumvent regex filters: whitespace substitution (`/**/`, `%09`), keyword splitting, and hex/URL encoding.
@@ -44,7 +44,7 @@
             </div>
 
             <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-purple-400">Module 4.3</div>
+                <div class="text-xs font-mono font-bold text-purple-400">Section 4.3</div>
                 <div class="text-sm font-bold text-white">Static Code Analyzer (SAST Auditor)</div>
                 <p class="text-xs text-gray-400 leading-relaxed">
                     A code linter tool where developers paste raw SQL queries; flags concatenation vulnerabilities and auto-converts to prepared statements.
@@ -52,7 +52,7 @@
             </div>
 
             <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-purple-400">Module 4.4</div>
+                <div class="text-xs font-mono font-bold text-purple-400">Section 4.4</div>
                 <div class="text-sm font-bold text-white">Audit Report & Certification Generator</div>
                 <p class="text-xs text-gray-400 leading-relaxed">
                     Compiles vulnerability assessment findings, compliant with OWASP Top 10 A03:2021-Injection standards.
@@ -61,8 +61,8 @@
         </div>
 
         <div class="p-4 rounded-xl bg-purple-950/20 border border-purple-500/20 text-xs text-purple-300 flex items-center space-x-3">
-            <i data-lucide="clock" class="w-5 h-5 flex-shrink-0"></i>
-            <span>This module will be activated and built during <strong>Day 4 (Part 4)</strong>.</span>
+            <i data-lucide="info" class="w-5 h-5 flex-shrink-0"></i>
+            <span>Module 4 defensive and evasion components are staged. You can run the live <strong>Module 1: Authentication Bypass Lab</strong> immediately.</span>
         </div>
     </div>
 

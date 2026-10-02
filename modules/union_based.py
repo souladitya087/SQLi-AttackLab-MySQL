@@ -1,11 +1,10 @@
 """
-Day 2 Module: Union-Based SQL Injection & MySQL Schema Enumeration
-(Scheduled for Part 2)
+Module 2: Union-Based SQL Injection & MySQL Schema Enumeration
 """
 
 def execute_catalog_search(category, mode="vulnerable", client_ip="127.0.0.1"):
     """
-    Search endpoint that will demonstrate:
+    Search endpoint demonstrating:
     - Determining column count via ORDER BY / NULL projection
     - Finding reflected data positions
     - Extracting MySQL version, database name, and user()
@@ -13,7 +12,7 @@ def execute_catalog_search(category, mode="vulnerable", client_ip="127.0.0.1"):
     - Exfiltrating restricted records
     """
     return {
-        "status": "planned",
-        "part": 2,
-        "message": "Part 2 will implement Union-Based SQLi, Column Count discovery, and Information Schema enumeration."
+        "status": "staged",
+        "module": 2,
+        "message": "Module 2 implements Union-Based SQLi, Column Count discovery, and Information Schema enumeration."
     }

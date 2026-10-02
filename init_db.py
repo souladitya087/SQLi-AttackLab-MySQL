@@ -108,8 +108,8 @@ def init_database():
     print("[*] Seeding secrets and challenge flags...")
     cursor.execute("TRUNCATE TABLE `system_secrets`;")
     secrets_data = [
-        ('FLAG_PART1_AUTH_BYPASS', 'FLAG{mysql_auth_tautology_bypass_mastered}', 'RESTRICTED'),
-        ('FLAG_PART2_UNION_EXPLOIT', 'FLAG{mysql_information_schema_exfiltration_pwned}', 'TOP_SECRET'),
+        ('FLAG_AUTH_BYPASS', 'FLAG{mysql_auth_tautology_bypass_mastered}', 'RESTRICTED'),
+        ('FLAG_UNION_EXPLOIT', 'FLAG{mysql_information_schema_exfiltration_pwned}', 'TOP_SECRET'),
         ('ROOT_DATABASE_MASTER_TOKEN', 'tok_sec_mysql80_4981948194819481948', 'CRITICAL'),
         ('MOCK_PAYMENT_GATEWAY_KEY', 'tok_mock_payment_sample_secret_key_9481948', 'CRITICAL')
     ]

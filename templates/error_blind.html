@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Day 3: Error & Blind SQLi | SQLi AttackLab (MySQL){% endblock %}
+{% block title %}Module 3: Error & Blind Inference | SQLi-AttackLab (MySQL){% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto space-y-6">
@@ -8,14 +8,14 @@
     <div class="pb-4 border-b border-gray-800 flex items-center justify-between">
         <div>
             <div class="flex items-center space-x-2">
-                <span class="text-xs font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-400 uppercase font-mono">Part 3</span>
-                <span class="text-xs text-amber-400 font-mono">Scheduled for Day 3</span>
+                <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 uppercase font-mono">Module 3</span>
+                <span class="text-xs text-gray-400 font-mono">In Development</span>
             </div>
             <h1 class="text-2xl font-black text-white mt-1">Error-Based & Blind/Time-Based Inference Attacks</h1>
             <p class="text-xs text-gray-400 mt-0.5">Extract data without visible SQL query output using database syntax errors and time delays.</p>
         </div>
         <a href="/lab/auth-bypass" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold text-xs transition">
-            Go to Day 1 Lab &rarr;
+            Launch Module 1 Lab &rarr;
         </a>
     </div>
 
@@ -23,12 +23,12 @@
     <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
         <h2 class="text-lg font-bold text-white flex items-center space-x-2">
             <i data-lucide="eye-off" class="w-5 h-5 text-amber-400"></i>
-            <span>Part 3 Technical Syllabus & Modules</span>
+            <span>Module 3 Architecture & Inference Vectors</span>
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-amber-400">Module 3.1</div>
+                <div class="text-xs font-mono font-bold text-amber-400">Section 3.1</div>
                 <div class="text-sm font-bold text-white">XPath / EXTRACTVALUE() Error Injection</div>
                 <p class="text-xs text-gray-400 leading-relaxed">
                     Triggering MySQL XPath syntax errors with `EXTRACTVALUE(1, CONCAT(0x7e, (SELECT user()), 0x7e))` to leak data inside error messages.
@@ -36,7 +36,7 @@
             </div>
 
             <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-amber-400">Module 3.2</div>
+                <div class="text-xs font-mono font-bold text-amber-400">Section 3.2</div>
                 <div class="text-sm font-bold text-white">Boolean-Based Blind Character Extraction</div>
                 <p class="text-xs text-gray-400 leading-relaxed">
                     Iterating through ASCII byte values with `ASCII(SUBSTRING((SELECT database()), 1, 1)) > 100` via binary search algorithms.
@@ -44,7 +44,7 @@
             </div>
 
             <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-amber-400">Module 3.3</div>
+                <div class="text-xs font-mono font-bold text-amber-400">Section 3.3</div>
                 <div class="text-sm font-bold text-white">Time-Based Delays with SLEEP() & BENCHMARK()</div>
                 <p class="text-xs text-gray-400 leading-relaxed">
                     Using conditional time delays `IF(1=1, SLEEP(3), 0)` to infer database values through network response latency measurements.
@@ -52,8 +52,8 @@
             </div>
 
             <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-amber-400">Module 3.4</div>
-                <div class="text-sm font-bold text-white">Response Latency Visualizer</div>
+                <div class="text-xs font-mono font-bold text-amber-400">Section 3.4</div>
+                <div class="text-sm font-bold text-white">Response Latency Profiler</div>
                 <p class="text-xs text-gray-400 leading-relaxed">
                     A real-time response time chart plotting millisecond latency differences to demonstrate time inference visually.
                 </p>
@@ -61,8 +61,8 @@
         </div>
 
         <div class="p-4 rounded-xl bg-amber-950/20 border border-amber-500/20 text-xs text-amber-300 flex items-center space-x-3">
-            <i data-lucide="clock" class="w-5 h-5 flex-shrink-0"></i>
-            <span>This module will be activated and built during <strong>Day 3 (Part 3)</strong>.</span>
+            <i data-lucide="info" class="w-5 h-5 flex-shrink-0"></i>
+            <span>Module 3 inference architecture is defined. You can run the live <strong>Module 1: Authentication Bypass Lab</strong> immediately.</span>
         </div>
     </div>
 
