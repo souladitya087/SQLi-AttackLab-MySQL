@@ -1,0 +1,483 @@
+{% extends "base.html" %}
+
+{% block title %}Day 1: Authentication Bypass | SQLi AttackLab (MySQL){% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header & Scenario Badges -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-800">
+        <div>
+            <div class="flex items-center space-x-2">
+                <span class="text-xs font-bold px-2.5 py-0.5 rounded bg-emerald-500 text-gray-950 uppercase font-mono">Part 1</span>
+                <span class="text-xs text-gray-400 font-mono">Day 1 Lab</span>
+            </div>
+            <h1 class="text-2xl font-black text-white mt-1">Authentication Bypass & Query Logic Manipulation</h1>
+            <p class="text-xs text-gray-400 mt-0.5">Explore how string delimiters and boolean logic override authentication checks in MySQL 8.0.</p>
+        </div>
+
+        <!-- Mode Toggle (Vulnerable vs Remediated) -->
+        <div class="flex items-center bg-gray-900 p-1.5 rounded-xl border border-gray-800 space-x-1">
+            <button id="mode-vuln" onclick="setMode('vulnerable')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                <span>Vulnerable (Dynamic)</span>
+            </button>
+            <button id="mode-secure" onclick="setMode('secure')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-gray-400 hover:text-gray-200">
+                <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+                <span>Remediated (Prepared)</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Scenario Selector -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <button onclick="setScenario('tautology')" id="tab-tautology" class="p-3.5 rounded-xl text-left border transition bg-emerald-500/10 border-emerald-500/40 text-emerald-400">
+            <div class="text-xs font-mono font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Scenario 1.1</span>
+                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            </div>
+            <div class="text-sm font-bold text-white">Classic Tautology Bypass</div>
+            <div class="text-xs text-gray-400 mt-1 code-font">' OR 1=1 -- </div>
+        </button>
+
+        <button onclick="setScenario('comment_truncation')" id="tab-comment_truncation" class="p-3.5 rounded-xl text-left border border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 transition">
+            <div class="text-xs font-mono font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Scenario 1.2</span>
+            </div>
+            <div class="text-sm font-bold text-gray-200">Comment Truncation</div>
+            <div class="text-xs text-gray-500 mt-1 code-font">admin' --  or admin' #</div>
+        </button>
+
+        <button onclick="setScenario('parenthesized')" id="tab-parenthesized" class="p-3.5 rounded-xl text-left border border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 transition">
+            <div class="text-xs font-mono font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Scenario 1.3</span>
+            </div>
+            <div class="text-sm font-bold text-gray-200">Parenthesized Query Bypass</div>
+            <div class="text-xs text-gray-500 mt-1 code-font">') OR ('1'='1</div>
+        </button>
+    </div>
+
+    <!-- Main Workspace (Grid: Attack Form & Query Inspector) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Attack Form & Quick Payloads (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+            
+            <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-4 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                        <i data-lucide="crosshair" class="w-4 h-4 text-emerald-400"></i>
+                        <span>Authentication Target Input</span>
+                    </h3>
+                    <span id="badge-mode" class="text-xs px-2 py-0.5 rounded font-mono font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                        VULNERABLE ENGINE
+                    </span>
+                </div>
+
+                <!-- Form -->
+                <form id="attack-form" onsubmit="executeAttack(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-300 mb-1">Target Username / Injection Input</label>
+                        <div class="relative">
+                            <input type="text" id="input-username" value="' OR 1=1 -- " 
+                                class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg px-3.5 py-2.5 text-sm text-emerald-400 code-font focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                                placeholder="Enter username or injection payload" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-gray-300 mb-1">Password</label>
+                        <input type="text" id="input-password" value="anything" 
+                            class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg px-3.5 py-2.5 text-sm text-gray-300 code-font focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition"
+                            placeholder="Password (can be empty when commented out)">
+                    </div>
+
+                    <button type="submit" id="btn-submit" class="w-full py-2.5 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold text-sm transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20">
+                        <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                        <span>Transmit Query to MySQL</span>
+                    </button>
+                </form>
+
+                <!-- Quick Payload Injection Buttons -->
+                <div class="pt-3 border-t border-gray-800 space-y-2">
+                    <div class="text-xs font-semibold text-gray-400 flex items-center justify-between">
+                        <span>Pre-crafted Attack Payloads:</span>
+                        <span class="text-gray-500 text-[10px]">Click to inject</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5" id="quick-payloads">
+                        <button type="button" onclick="insertPayload('\' OR 1=1 -- ')" class="text-xs px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-emerald-300 code-font border border-gray-700 transition">
+                            ' OR 1=1 -- 
+                        </button>
+                        <button type="button" onclick="insertPayload('admin\' -- ')" class="text-xs px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-emerald-300 code-font border border-gray-700 transition">
+                            admin' -- 
+                        </button>
+                        <button type="button" onclick="insertPayload('admin\' #')" class="text-xs px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-emerald-300 code-font border border-gray-700 transition">
+                            admin' #
+                        </button>
+                        <button type="button" onclick="insertPayload('\' OR \'a\'=\'a')" class="text-xs px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-emerald-300 code-font border border-gray-700 transition">
+                            ' OR 'a'='a
+                        </button>
+                        <button type="button" onclick="insertPayload('\') OR (\'1\'=\'1')" class="text-xs px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-emerald-300 code-font border border-gray-700 transition">
+                            ') OR ('1'='1
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Scenario Walkthrough / Explanation Box -->
+            <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-2.5 text-xs text-gray-300">
+                <div class="font-bold text-white flex items-center space-x-1.5">
+                    <i data-lucide="info" class="w-4 h-4 text-cyan-400"></i>
+                    <span id="scenario-title">Scenario Mechanism</span>
+                </div>
+                <p id="scenario-desc" class="leading-relaxed text-gray-400">
+                    The backend dynamically interpolates user input into the raw SQL string without escaping or parameter binding.
+                    Injecting a single quote terminates the string literal, while boolean operators alter query logic.
+                </p>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Real-Time Execution Inspector & Result Console (7 cols) -->
+        <div class="lg:col-span-7 space-y-4">
+
+            <!-- Live Query Inspector Card -->
+            <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-4 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                        <i data-lucide="terminal" class="w-4 h-4 text-cyan-400"></i>
+                        <span>Live MySQL Query Inspector</span>
+                    </h3>
+                    <div class="flex items-center space-x-2 font-mono text-xs">
+                        <span id="exec-time" class="text-gray-400">0.00 ms</span>
+                    </div>
+                </div>
+
+                <!-- Query String Preview Window -->
+                <div class="p-3.5 rounded-xl bg-[#070b13] border border-gray-800">
+                    <div class="text-[11px] font-mono text-gray-500 mb-1.5 flex items-center justify-between">
+                        <span>SENT TO MYSQL SERVER:</span>
+                        <span id="query-type-badge" class="text-rose-400 font-bold text-[10px]">RAW DYNAMIC STRING</span>
+                    </div>
+                    <div id="query-display" class="code-font text-xs text-yellow-300 break-all leading-relaxed whitespace-pre-wrap">
+                        SELECT id, username, full_name, email, role, api_key FROM users WHERE username = '' AND password = '' LIMIT 1
+                    </div>
+                </div>
+
+                <!-- Execution Status Banner -->
+                <div id="status-banner" class="p-3 rounded-xl border flex items-center justify-between bg-gray-800/40 border-gray-700 text-gray-300">
+                    <div class="flex items-center space-x-2.5">
+                        <i data-lucide="help-circle" id="status-icon" class="w-5 h-5 text-gray-400"></i>
+                        <div>
+                            <div id="status-heading" class="text-xs font-bold text-white">Awaiting Execution</div>
+                            <div id="status-sub" class="text-[11px] text-gray-400">Submit the form to test this scenario against MySQL.</div>
+                        </div>
+                    </div>
+                    <div id="status-flag" class="hidden">
+                        <span class="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-mono font-bold">
+                            FLAG UNLOCKED
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Breached Profile Result Display (if authenticated) -->
+                <div id="user-profile-card" class="hidden p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Authentication Bypassed</span>
+                        </div>
+                        <span id="user-role-badge" class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-500 text-gray-950">
+                            ADMIN
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <span class="text-gray-500 text-[10px] uppercase font-mono">Account Username</span>
+                            <div id="res-username" class="font-bold text-white code-font">admin</div>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 text-[10px] uppercase font-mono">Full Name</span>
+                            <div id="res-fullname" class="font-bold text-gray-200">Administrator</div>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 text-[10px] uppercase font-mono">Email</span>
+                            <div id="res-email" class="text-gray-300">admin@sqli-lab.local</div>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 text-[10px] uppercase font-mono">Compromised API Key</span>
+                            <div id="res-apikey" class="text-rose-400 code-font truncate">sk_live_...</div>
+                        </div>
+                    </div>
+
+                    <div id="flag-container" class="hidden pt-2 border-t border-emerald-500/20">
+                        <div class="text-[10px] text-amber-400 font-mono font-bold uppercase">Challenge Flag Awarded:</div>
+                        <div id="flag-text" class="text-xs font-mono font-black text-amber-300 bg-amber-950/30 px-2.5 py-1.5 rounded border border-amber-500/30 mt-1 select-all">
+                            FLAG{...}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explanation Breakdown -->
+                <div class="p-3.5 rounded-xl bg-gray-950/50 border border-gray-800 space-y-1.5">
+                    <div class="text-[11px] font-bold text-gray-400 flex items-center space-x-1.5">
+                        <i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>Query Parser Analysis</span>
+                    </div>
+                    <p id="parser-analysis" class="text-xs text-gray-300 leading-relaxed">
+                        When executed in vulnerable mode, the MySQL engine evaluates the modified query structure rather than treating the input as a string literal.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Live Database Query Audit Logs (MySQL Table Viewer) -->
+    <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-3">
+        <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                <i data-lucide="list-ordered" class="w-4 h-4 text-emerald-400"></i>
+                <span>MySQL Security Audit Log (Table: `query_audit_logs`)</span>
+            </h3>
+            <button onclick="fetchAuditLogs()" class="text-xs text-gray-400 hover:text-emerald-400 transition flex items-center space-x-1 font-mono">
+                <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                <span>Refresh Log</span>
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border border-gray-800 rounded-lg overflow-hidden">
+                <thead class="bg-gray-950 text-gray-400 font-mono text-[11px] uppercase border-b border-gray-800">
+                    <tr>
+                        <th class="p-2.5">ID</th>
+                        <th class="p-2.5">Module</th>
+                        <th class="p-2.5">Executed Query</th>
+                        <th class="p-2.5">Parameterized</th>
+                        <th class="p-2.5">Status</th>
+                        <th class="p-2.5">Time</th>
+                    </tr>
+                </thead>
+                <tbody id="audit-table-body" class="divide-y divide-gray-800 font-mono text-gray-300">
+                    <tr>
+                        <td colspan="6" class="p-4 text-center text-gray-500">Loading audit history from MySQL...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentScenario = 'tautology';
+    let currentMode = 'vulnerable';
+
+    const scenarioConfigs = {
+        tautology: {
+            title: "Classic Tautology Bypass (' OR 1=1 -- )",
+            desc: "The query concatenates input directly. Injecting ' OR 1=1 --  causes the WHERE clause to evaluate: (username = '' OR TRUE). Because TRUE is always satisfied, MySQL returns the first matching record (admin) without validating the password.",
+            defaultPayload: "' OR 1=1 -- "
+        },
+        comment_truncation: {
+            title: "MySQL Comment Truncation (admin' --  or admin' #)",
+            desc: "MySQL supports --  (double dash followed by a space) and # (hash) comments. By injecting admin' -- , the attacker satisfies the username condition while commenting out the remainder of the query (AND password = '...'), bypassing password authentication entirely.",
+            defaultPayload: "admin' -- "
+        },
+        parenthesized: {
+            title: "Parenthesized Query Bypass (') OR ('1'='1)",
+            desc: "When queries wrap input in parentheses (WHERE (username = '...') AND (password = '...')), injecting an unclosed quote triggers a syntax error. Attackers must balance the parentheses by crafting: ') OR ('1'='1.",
+            defaultPayload: "') OR ('1'='1"
+        }
+    };
+
+    function setScenario(scen) {
+        currentScenario = scen;
+        const config = scenarioConfigs[scen];
+
+        document.querySelectorAll("[id^='tab-']").forEach(el => {
+            el.className = "p-3.5 rounded-xl text-left border border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 transition";
+        });
+        const activeTab = document.getElementById(`tab-${scen}`);
+        if (activeTab) {
+            activeTab.className = "p-3.5 rounded-xl text-left border transition bg-emerald-500/10 border-emerald-500/40 text-emerald-400";
+        }
+
+        document.getElementById('input-username').value = config.defaultPayload;
+        document.getElementById('scenario-title').innerText = config.title;
+        document.getElementById('scenario-desc').innerText = config.desc;
+    }
+
+    function setMode(mode) {
+        currentMode = mode;
+        const vulnBtn = document.getElementById('mode-vuln');
+        const secBtn = document.getElementById('mode-secure');
+        const badge = document.getElementById('badge-mode');
+        const qBadge = document.getElementById('query-type-badge');
+
+        if (mode === 'vulnerable') {
+            vulnBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-rose-500/20 text-rose-400 border border-rose-500/30";
+            secBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-gray-400 hover:text-gray-200";
+            badge.innerText = "VULNERABLE ENGINE";
+            badge.className = "text-xs px-2 py-0.5 rounded font-mono font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+            qBadge.innerText = "RAW DYNAMIC STRING";
+            qBadge.className = "text-rose-400 font-bold text-[10px]";
+        } else {
+            vulnBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-gray-400 hover:text-gray-200";
+            secBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+            badge.innerText = "REMEDIATED (PREPARED)";
+            badge.className = "text-xs px-2 py-0.5 rounded font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            qBadge.innerText = "PARAMETERIZED QUERY";
+            qBadge.className = "text-emerald-400 font-bold text-[10px]";
+        }
+    }
+
+    function insertPayload(payload) {
+        document.getElementById('input-username').value = payload;
+    }
+
+    async function executeAttack(event) {
+        event.preventDefault();
+        const username = document.getElementById('input-username').value;
+        const password = document.getElementById('input-password').value;
+
+        const btn = document.getElementById('btn-submit');
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Executing in MySQL...</span>`;
+        lucide.createIcons();
+
+        try {
+            const resp = await fetch('/api/auth/test', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    scenario: currentScenario,
+                    mode: currentMode
+                })
+            });
+
+            const data = await resp.json();
+            renderResult(data);
+            fetchAuditLogs();
+        } catch (e) {
+            console.error(e);
+            alert("Error communicating with backend API.");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i><span>Transmit Query to MySQL</span>`;
+            lucide.createIcons();
+        }
+    }
+
+    function renderResult(data) {
+        document.getElementById('exec-time').innerText = `${data.execution_time_ms} ms`;
+        document.getElementById('query-display').innerText = data.constructed_query;
+        document.getElementById('parser-analysis').innerText = data.explanation;
+
+        const banner = document.getElementById('status-banner');
+        const heading = document.getElementById('status-heading');
+        const sub = document.getElementById('status-sub');
+        const profileCard = document.getElementById('user-profile-card');
+        const flagBox = document.getElementById('flag-container');
+        const statusFlag = document.getElementById('status-flag');
+
+        if (data.error) {
+            banner.className = "p-3 rounded-xl border flex items-center justify-between bg-rose-950/30 border-rose-500/40 text-rose-300";
+            heading.innerText = "MySQL Execution Syntax Error";
+            sub.innerText = data.error;
+            profileCard.classList.add('hidden');
+            statusFlag.classList.add('hidden');
+        } else if (data.success) {
+            if (data.bypassed) {
+                banner.className = "p-3 rounded-xl border flex items-center justify-between bg-emerald-950/40 border-emerald-500/40 text-emerald-300";
+                heading.innerText = "AUTHENTICATION BYPASS SUCCESSFUL!";
+                sub.innerText = `Access granted without valid password verification for account: ${data.user_profile.username}`;
+                profileCard.classList.remove('hidden');
+
+                document.getElementById('res-username').innerText = data.user_profile.username;
+                document.getElementById('res-fullname').innerText = data.user_profile.full_name;
+                document.getElementById('res-email').innerText = data.user_profile.email;
+                document.getElementById('res-apikey').innerText = data.user_profile.api_key;
+                document.getElementById('user-role-badge').innerText = data.user_profile.role.toUpperCase();
+
+                if (data.flag) {
+                    flagBox.classList.remove('hidden');
+                    statusFlag.classList.remove('hidden');
+                    document.getElementById('flag-text').innerText = data.flag;
+                } else {
+                    flagBox.classList.add('hidden');
+                    statusFlag.classList.add('hidden');
+                }
+            } else {
+                banner.className = "p-3 rounded-xl border flex items-center justify-between bg-emerald-950/20 border-emerald-500/30 text-emerald-400";
+                heading.innerText = "Legitimate Credentials Accepted";
+                sub.innerText = `User ${data.user_profile.username} authenticated legitimately.`;
+                profileCard.classList.remove('hidden');
+                flagBox.classList.add('hidden');
+                statusFlag.classList.add('hidden');
+            }
+        } else {
+            banner.className = "p-3 rounded-xl border flex items-center justify-between bg-gray-800/40 border-gray-700 text-gray-400";
+            heading.innerText = "Authentication Rejected (0 Rows Matched)";
+            sub.innerText = currentMode === 'secure' 
+                ? "The prepared statement safely treated the attack string as a literal value. No injection occurred." 
+                : "The credentials supplied did not match any database row.";
+            profileCard.classList.add('hidden');
+            statusFlag.classList.add('hidden');
+        }
+        lucide.createIcons();
+    }
+
+    async function fetchAuditLogs() {
+        try {
+            const resp = await fetch('/api/audit-logs');
+            const data = await resp.json();
+            const tbody = document.getElementById('audit-table-body');
+            tbody.innerHTML = '';
+
+            if (!data.logs || data.logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-gray-500">No queries executed yet.</td></tr>`;
+                return;
+            }
+
+            data.logs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-800/50 transition";
+                const isParamBadge = log.is_parameterized 
+                    ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">YES</span>`
+                    : `<span class="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30">NO</span>`;
+                
+                let statusBadge = `<span class="text-gray-400">${log.execution_status}</span>`;
+                if (log.execution_status === 'SUCCESS') {
+                    statusBadge = `<span class="text-emerald-400 font-bold">SUCCESS</span>`;
+                } else if (log.execution_status === 'MYSQL_ERROR') {
+                    statusBadge = `<span class="text-rose-400 font-bold">ERROR</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="p-2.5 text-gray-500">#${log.id}</td>
+                    <td class="p-2.5 text-gray-300 font-medium">${log.lab_module}</td>
+                    <td class="p-2.5 text-yellow-300/90 max-w-xs truncate" title="${log.executed_query}">${log.executed_query}</td>
+                    <td class="p-2.5">${isParamBadge}</td>
+                    <td class="p-2.5">${statusBadge}</td>
+                    <td class="p-2.5 text-gray-500 text-[10px]">${log.timestamp || ''}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (e) {
+            console.error("Failed to load audit logs", e);
+        }
+    }
+
+    // Initial audit log fetch
+    fetchAuditLogs();
+</script>
+{% endblock %}

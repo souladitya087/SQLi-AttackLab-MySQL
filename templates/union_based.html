@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Day 2: Union-Based SQLi | SQLi AttackLab (MySQL){% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <div class="pb-4 border-b border-gray-800 flex items-center justify-between">
+        <div>
+            <div class="flex items-center space-x-2">
+                <span class="text-xs font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-400 uppercase font-mono">Part 2</span>
+                <span class="text-xs text-emerald-400 font-mono">Scheduled for Tomorrow (Day 2)</span>
+            </div>
+            <h1 class="text-2xl font-black text-white mt-1">Union-Based SQLi & MySQL Schema Enumeration</h1>
+            <p class="text-xs text-gray-400 mt-0.5">Exfiltrate database metadata, dump tables, and harvest confidential data using UNION operators.</p>
+        </div>
+        <a href="/lab/auth-bypass" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold text-xs transition">
+            Go to Day 1 Lab &rarr;
+        </a>
+    </div>
+
+    <!-- Syllabus & Architecture Plan Card -->
+    <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
+        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+            <i data-lucide="layers" class="w-5 h-5 text-cyan-400"></i>
+            <span>Part 2 Technical Syllabus & Modules</span>
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
+                <div class="text-xs font-mono font-bold text-cyan-400">Module 2.1</div>
+                <div class="text-sm font-bold text-white">Determining Column Count</div>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    Executing binary search with `ORDER BY 1, 2, ... N` until MySQL raises error 1054 (`Unknown column`), identifying exact projected column count.
+                </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
+                <div class="text-xs font-mono font-bold text-cyan-400">Module 2.2</div>
+                <div class="text-sm font-bold text-white">Data Type & Reflection Mapping</div>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    Replacing projected NULL placeholders with string markers (`UNION SELECT 'test1', 'test2'`) to determine which fields render on the webpage.
+                </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
+                <div class="text-xs font-mono font-bold text-cyan-400">Module 2.3</div>
+                <div class="text-sm font-bold text-white">Information Schema Harvesting</div>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    Dumping table and column definitions from MySQL's internal `information_schema.tables` and `information_schema.columns`.
+                </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
+                <div class="text-xs font-mono font-bold text-cyan-400">Module 2.4</div>
+                <div class="text-sm font-bold text-white">Confidential Data Exfiltration</div>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    Targeted exfiltration from the `system_secrets` and `users` tables, extracting API keys and administrative password hashes.
+                </p>
+            </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/20 text-xs text-cyan-300 flex items-center space-x-3">
+            <i data-lucide="clock" class="w-5 h-5 flex-shrink-0"></i>
+            <span>This module will be activated and built during <strong>Day 2 (Part 2)</strong>. You can test Day 1's Authentication Bypass Lab right now!</span>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SQLi AttackLab (MySQL){% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857'
+                        },
+                        darkbg: '#0b0f19',
+                        darkcard: '#111827',
+                        darkborder: '#1f2937'
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Menlo', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-[#0b0f19] text-gray-200 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <nav class="bg-[#111827] border-b border-gray-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand / Logo -->
+                <div class="flex items-center space-x-3">
+                    <a href="/" class="flex items-center space-x-2">
+                        <div class="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold text-lg text-white tracking-wide">SQLi<span class="text-emerald-400">AttackLab</span></span>
+                            <span class="ml-2 text-xs uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">MySQL 8.0</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Navigation Tabs (4 Parts) -->
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-800 transition">
+                        Overview
+                    </a>
+                    <a href="/lab/auth-bypass" class="px-3 py-2 rounded-md text-sm font-medium text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 flex items-center space-x-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-1"></span>
+                        Day 1: Auth Bypass
+                    </a>
+                    <a href="/lab/union-based" class="px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition flex items-center">
+                        <span class="text-xs px-1.5 py-0.2 mr-1.5 rounded bg-gray-800 text-gray-400">Part 2</span>
+                        Union-Based
+                    </a>
+                    <a href="/lab/error-blind" class="px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition flex items-center">
+                        <span class="text-xs px-1.5 py-0.2 mr-1.5 rounded bg-gray-800 text-gray-400">Part 3</span>
+                        Error & Blind
+                    </a>
+                    <a href="/lab/evasion-audit" class="px-3 py-2 rounded-md text-sm font-medium text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 transition flex items-center">
+                        <span class="text-xs px-1.5 py-0.2 mr-1.5 rounded bg-gray-800 text-gray-400">Part 4</span>
+                        Evasion & Audit
+                    </a>
+                </div>
+
+                <!-- Status indicator -->
+                <div class="flex items-center space-x-3">
+                    <div class="hidden sm:flex items-center space-x-2 text-xs bg-gray-900 border border-gray-800 rounded-full px-3 py-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span class="text-gray-400">MySQL Server: <strong class="text-gray-200">Online</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-[#111827] border-t border-gray-800 py-4 text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div>
+                <strong>SQLi AttackLab</strong> &mdash; 4-Day Hands-on Security & Exploitation Lab for MySQL 8.0
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-emerald-500">Day 1: Completed</span>
+                <span>Day 2: Union-Based</span>
+                <span>Day 3: Error & Blind</span>
+                <span>Day 4: Evasion & Audit</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

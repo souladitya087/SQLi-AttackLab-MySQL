@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard & 4-Day Plan | SQLi AttackLab (MySQL){% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Hero Section -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-950/40 via-gray-900 to-gray-900 border border-emerald-500/20 p-8">
+        <div class="max-w-3xl space-y-4">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                <span>MySQL 8.0 Hands-On Offensive & Defensive Security Lab</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                SQL Injection Attacks & Mitigation Lab
+            </h1>
+            <p class="text-gray-300 text-sm sm:text-base leading-relaxed">
+                An interactive security testbed engineered to demonstrate modern SQL injection attack techniques against 
+                <strong class="text-emerald-400 font-semibold">MySQL 8.0</strong>, query syntax manipulation, schema enumeration, 
+                and industry-standard prepared statement defenses.
+            </p>
+            <div class="pt-2 flex flex-wrap gap-3">
+                <a href="/lab/auth-bypass" class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold transition shadow-lg shadow-emerald-500/20">
+                    <i data-lucide="terminal" class="w-4 h-4"></i>
+                    <span>Launch Day 1: Auth Bypass Lab</span>
+                </a>
+                <a href="https://github.com/souladitya087/SQLi-AttackLab-MySQL" target="_blank" class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 font-medium transition border border-gray-700">
+                    <i data-lucide="github" class="w-4 h-4"></i>
+                    <span>GitHub Repository</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4-Day Execution Plan & Progress Tracker -->
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+                <i data-lucide="calendar" class="w-5 h-5 text-emerald-400"></i>
+                <span>4-Day Project Roadmap (1 Part Per Day)</span>
+            </h2>
+            <span class="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20">
+                Day 1 Active & Ready
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- Day 1 Card (ACTIVE / COMPLETED) -->
+            <div class="relative rounded-xl bg-gradient-to-b from-gray-900 to-[#111827] border-2 border-emerald-500/60 p-5 shadow-lg shadow-emerald-950/20 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-500 text-gray-950 uppercase tracking-wide">
+                            Day 1 (Ready)
+                        </span>
+                        <span class="text-xs text-emerald-400 flex items-center font-mono">
+                            <i data-lucide="check-circle" class="w-3.5 h-3.5 mr-1"></i> Part 1
+                        </span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Authentication Bypass & Query Logic</h3>
+                    <p class="text-xs text-gray-400 mb-4 leading-relaxed">
+                        Exploit string delimiters, boolean tautology (`OR 1=1`), MySQL inline comment truncation (`-- `, `#`), and compare with prepared statements.
+                    </p>
+                    <ul class="text-xs space-y-1.5 text-gray-300 font-mono">
+                        <li class="flex items-center"><i data-lucide="chevron-right" class="w-3 h-3 text-emerald-400 mr-1"></i> Tautology Bypass Lab</li>
+                        <li class="flex items-center"><i data-lucide="chevron-right" class="w-3 h-3 text-emerald-400 mr-1"></i> Comment Truncation</li>
+                        <li class="flex items-center"><i data-lucide="chevron-right" class="w-3 h-3 text-emerald-400 mr-1"></i> Query AST & Token Inspector</li>
+                        <li class="flex items-center"><i data-lucide="chevron-right" class="w-3 h-3 text-emerald-400 mr-1"></i> Parameterized Defense Toggle</li>
+                    </ul>
+                </div>
+                <div class="mt-5 pt-3 border-t border-gray-800">
+                    <a href="/lab/auth-bypass" class="w-full inline-flex items-center justify-center space-x-2 py-2 px-3 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 text-xs font-semibold transition border border-emerald-500/30">
+                        <span>Open Day 1 Lab</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Day 2 Card -->
+            <div class="relative rounded-xl bg-gray-900 border border-gray-800 p-5 flex flex-col justify-between opacity-80 hover:opacity-100 transition">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-400 uppercase tracking-wide">
+                            Day 2
+                        </span>
+                        <span class="text-xs text-gray-500 font-mono">Part 2</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-200 mb-2">Union-Based & Schema Enumeration</h3>
+                    <p class="text-xs text-gray-400 mb-4 leading-relaxed">
+                        Column count determination (`ORDER BY n`), projection matching, and dumping MySQL `information_schema` tables/columns.
+                    </p>
+                    <ul class="text-xs space-y-1.5 text-gray-400 font-mono">
+                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> ORDER BY Column Counting</li>
+                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> Data Type Reflection Finder</li>
+                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> Information Schema Dump</li>
+                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> Confidential Data Exfiltration</li>
+                    </ul>
+                </div>
+                <div class="mt-5 pt-3 border-t border-gray-800">
+                    <a href="/lab/union-based" class="w-full inline-flex items-center justify-center space-x-2 py-2 px-3 rounded bg-gray-800 text-gray-400 text-xs font-medium hover:bg-gray-700 hover:text-gray-300 transition">
+                        <span>View Syllabus</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Day 3 Card -->
+            <div class="relative rounded-xl bg-gray-900 border border-gray-800 p-5 flex flex-col justify-between opacity-80 hover:opacity-100 transition">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-400 uppercase tracking-wide">
+                            Day 3
+                        </span>
+                        <span class="text-xs text-gray-500 font-mono">Part 3</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-200 mb-2">Error-Based & Blind/Time-Based SQLi</h3>
+                    <p class="text-xs text-gray-400 mb-4 leading-relaxed">
+                        Exploit MySQL error functions (`EXTRACTVALUE`, `UPDATEXML`) and time delays (`SLEEP()`) for inference attacks.
+                    </p>
+                    <ul class="text-xs space-y-1.5 text-gray-400 font-mono">
+                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> EXTRACTVALUE XPath Injection</li>
+                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> Boolean-based Binary Search</li>
+                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> SLEEP() Time-based Inference</li>
+                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> Response Latency Visualizer</li>
+                    </ul>
+                </div>
+                <div class="mt-5 pt-3 border-t border-gray-800">
+                    <a href="/lab/error-blind" class="w-full inline-flex items-center justify-center space-x-2 py-2 px-3 rounded bg-gray-800 text-gray-400 text-xs font-medium hover:bg-gray-700 hover:text-gray-300 transition">
+                        <span>View Syllabus</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Day 4 Card -->
+            <div class="relative rounded-xl bg-gray-900 border border-gray-800 p-5 flex flex-col justify-between opacity-80 hover:opacity-100 transition">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-400 uppercase tracking-wide">
+                            Day 4
+                        </span>
+                        <span class="text-xs text-gray-500 font-mono">Part 4</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-200 mb-2">Second-Order, WAF Evasion & SAST</h3>
+                    <p class="text-xs text-gray-400 mb-4 leading-relaxed">
+                        Delayed execution vectors, filter evasion techniques (whitespace, inline comments), and code remediation tools.
+                    </p>
+                    <ul class="text-xs space-y-1.5 text-gray-400 font-mono">
+                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> Second-Order Stored SQLi</li>
+                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> WAF Evasion Sandbox</li>
+                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> Static Query Linter (SAST)</li>
+                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> Final Audit Report Generator</li>
+                    </ul>
+                </div>
+                <div class="mt-5 pt-3 border-t border-gray-800">
+                    <a href="/lab/evasion-audit" class="w-full inline-flex items-center justify-center space-x-2 py-2 px-3 rounded bg-gray-800 text-gray-400 text-xs font-medium hover:bg-gray-700 hover:text-gray-300 transition">
+                        <span>View Syllabus</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Live System & MySQL Environment Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="p-4 rounded-xl bg-gray-900 border border-gray-800 flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <i data-lucide="database" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <div class="text-xs text-gray-400">Database Engine</div>
+                <div class="text-sm font-bold text-white">MySQL Server 8.0</div>
+                <div class="text-xs text-emerald-400 font-mono">DB: sqli_lab_db (Port 3306)</div>
+            </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-gray-900 border border-gray-800 flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                <i data-lucide="git-branch" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <div class="text-xs text-gray-400">Version Control</div>
+                <div class="text-sm font-bold text-white">Git & GitHub Remote</div>
+                <div class="text-xs text-cyan-400 font-mono">Branch: main (Clean sync)</div>
+            </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-gray-900 border border-gray-800 flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                <i data-lucide="shield" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <div class="text-xs text-gray-400">Framework</div>
+                <div class="text-sm font-bold text-white">Python 3.14 + Flask</div>
+                <div class="text-xs text-purple-400 font-mono">Interactive REST API</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
