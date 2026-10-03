@@ -1,4 +1,4 @@
-# 🛡️ SQLi-AttackLab: Advanced SQL Injection Exploitation & Defense Suite
+# 🛡️ SQLi-AttackLab: Hands-on SQL Injection & Defense Lab (MySQL)
 
 [![Database](https://img.shields.io/badge/Database-MySQL%208.0-00758F.svg?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
@@ -6,30 +6,31 @@
 [![Standard](https://img.shields.io/badge/Standard-OWASP%20Top%2010%20(A03%3A2021)-E0234E.svg?style=for-the-badge)](https://owasp.org/Top10/A03_2021-Injection/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-An interactive, enterprise-grade penetration testing and application security laboratory engineered to demonstrate real-world **SQL Injection (SQLi) attack mechanics**, AST query manipulation, database enumeration, and defense-in-depth mitigations against **MySQL 8.0**.
+An interactive web security lab built to demonstrate and practice real-world **SQL Injection (SQLi)** attacks against **MySQL 8.0**, inspect query behavior in real time, and learn how to implement secure prepared statements.
 
 ---
 
 ## 📑 Table of Contents
-- [Executive Overview](#-executive-overview)
-- [Architecture & System Design](#-architecture--system-design)
-- [Security Modules](#-security-modules)
-  - [Module 1: Authentication Bypass & Query Logic Manipulation](#module-1-authentication-bypass--query-logic-manipulation)
+- [About The Project](#-about-the-project)
+- [Architecture & Flow](#-architecture--flow)
+- [Lab Modules](#-lab-modules)
+  - [Module 1: Authentication Bypass](#module-1-authentication-bypass)
   - [Module 2: Union-Based Injection & Schema Enumeration](#module-2-union-based-injection--schema-enumeration)
   - [Module 3: Error-Based & Blind/Time-Based Inference](#module-3-error-based--blindtime-based-inference)
-  - [Module 4: Advanced Filter Evasion & Static Code Analysis (SAST)](#module-4-advanced-filter-evasion--static-code-analysis-sast)
-- [Installation & Quickstart](#-installation--quickstart)
-- [Database Schema Architecture](#-database-schema-architecture)
-- [Mitigation Analysis: Prepared Statements](#-mitigation-analysis-prepared-statements)
-- [Security & Ethics Disclaimer](#-security--ethics-disclaimer)
+  - [Module 4: Filter Evasion & Static Code Analysis](#module-4-filter-evasion--static-code-analysis)
+- [Setup & Installation](#-setup--installation)
+- [Database Structure](#-database-structure)
+- [Attack Walkthroughs](#-attack-walkthroughs)
+- [How Mitigations Work](#-how-mitigations-work)
+- [Disclaimer](#-disclaimer)
 
 ---
 
-## 🎯 Executive Overview
+## 🎯 About The Project
 
-Despite decades of awareness, **SQL Injection (CWE-89)** remains one of the most destructive web application security vulnerabilities. Poorly sanitized inputs in data access layers allow adversaries to subvert application logic, read unauthorized business records, escalate privileges, and compromise database engines.
+SQL Injection (SQLi) has been around for decades, but it's still one of the most common web security flaws. When user input isn't sanitized or parameterized, attackers can break out of query strings, access restricted data, bypass logins, and dump entire databases.
 
-**SQLi-AttackLab** provides security researchers, penetration testers, and software engineers with a realistic, sandboxed environment to examine query exploitation behaviors side-by-side with industry-standard remediation techniques.
+This project provides a local, hands-on lab environment where you can test different SQLi techniques against a real MySQL 8.0 database, view the generated queries, and toggle between vulnerable code and secure parameterized queries to see the difference.
 
 ```
                               ┌────────────────────────────────────────┐
