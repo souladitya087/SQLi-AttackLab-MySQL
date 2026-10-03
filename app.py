@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from config import Config
 from database import get_recent_audit_logs
 from modules.auth_bypass import execute_auth_attempt
+from modules.union_based import execute_catalog_search
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -44,6 +45,23 @@ def api_auth_test():
     result = execute_auth_attempt(
         username=username,
         password=password,
+        scenario=scenario,
+        mode=mode,
+        client_ip=client_ip
+    )
+    return jsonify(result)
+
+@app.route("/api/union/search", methods=["POST"])
+def api_union_search():
+    """API endpoint to execute a catalog search/UNION injection test against MySQL."""
+    data = request.get_json() or {}
+    category = data.get("category", "Hardware")
+    scenario = data.get("scenario", "column_counting")
+    mode = data.get("mode", "vulnerable")
+    client_ip = request.remote_addr or "127.0.0.1"
+
+    result = execute_catalog_search(
+        category_input=category,
         scenario=scenario,
         mode=mode,
         client_ip=client_ip

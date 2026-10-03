@@ -40,8 +40,8 @@
                 <i data-lucide="cpu" class="w-5 h-5 text-emerald-400"></i>
                 <span>Security Modules & Attack Vectors</span>
             </h2>
-            <span class="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20 font-mono">
-                Module 1 Live
+            <span class="text-xs text-cyan-400 font-semibold bg-cyan-500/10 px-2.5 py-1 rounded border border-cyan-500/20 font-mono">
+                Modules 1 & 2 Active
             </span>
         </div>
 
@@ -77,29 +77,32 @@
                 </div>
             </div>
 
-            <!-- Module 2 Card -->
-            <div class="relative rounded-xl bg-gray-900 border border-gray-800 p-5 flex flex-col justify-between opacity-85 hover:opacity-100 transition">
+            <!-- Module 2 Card (ACTIVE) -->
+            <div class="relative rounded-xl bg-gradient-to-b from-gray-900 to-[#111827] border-2 border-cyan-500/60 p-5 shadow-lg shadow-cyan-950/20 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs font-bold px-2 py-0.5 rounded bg-gray-800 text-gray-300 uppercase tracking-wide font-mono">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded bg-cyan-500 text-gray-950 uppercase tracking-wide font-mono">
                             Module 2
                         </span>
-                        <span class="text-xs text-gray-500 font-mono">UNION-BASED</span>
+                        <span class="text-xs text-cyan-400 flex items-center font-mono">
+                            <i data-lucide="check-circle" class="w-3.5 h-3.5 mr-1"></i> Active
+                        </span>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-200 mb-2">Union Extraction & Schema Enumeration</h3>
+                    <h3 class="text-lg font-bold text-white mb-2">Union Extraction & Schema Enumeration</h3>
                     <p class="text-xs text-gray-400 mb-4 leading-relaxed">
                         Column count determination (`ORDER BY n`), projection matching, and dumping MySQL `information_schema` tables/columns.
                     </p>
-                    <ul class="text-xs space-y-1.5 text-gray-400 font-mono">
-                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> ORDER BY Column Counting</li>
-                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> Data Type Reflection Finder</li>
-                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> Information Schema Dump</li>
-                        <li class="flex items-center"><i data-lucide="minus" class="w-3 h-3 text-gray-600 mr-1"></i> Confidential Data Exfiltration</li>
+                    <ul class="text-xs space-y-1.5 text-gray-300 font-mono">
+                        <li class="flex items-center"><i data-lucide="chevron-right" class="w-3 h-3 text-cyan-400 mr-1"></i> Column Count Discovery</li>
+                        <li class="flex items-center"><i data-lucide="chevron-right" class="w-3 h-3 text-cyan-400 mr-1"></i> Reflection Mapping</li>
+                        <li class="flex items-center"><i data-lucide="chevron-right" class="w-3 h-3 text-cyan-400 mr-1"></i> Information Schema Dump</li>
+                        <li class="flex items-center"><i data-lucide="chevron-right" class="w-3 h-3 text-cyan-400 mr-1"></i> Secret Exfiltration Challenge</li>
                     </ul>
                 </div>
                 <div class="mt-5 pt-3 border-t border-gray-800">
-                    <a href="/lab/union-based" class="w-full inline-flex items-center justify-center space-x-2 py-2 px-3 rounded bg-gray-800 text-gray-300 text-xs font-medium hover:bg-gray-700 hover:text-white transition">
-                        <span>View Architecture</span>
+                    <a href="/lab/union-based" class="w-full inline-flex items-center justify-center space-x-2 py-2 px-3 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 text-xs font-semibold transition border border-cyan-500/30">
+                        <span>Launch Lab</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                     </a>
                 </div>
             </div>
