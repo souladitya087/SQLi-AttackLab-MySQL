@@ -3,6 +3,7 @@ from config import Config
 from database import get_recent_audit_logs
 from modules.auth_bypass import execute_auth_attempt
 from modules.union_based import execute_catalog_search
+from modules.error_blind import execute_error_blind_query
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -62,6 +63,23 @@ def api_union_search():
 
     result = execute_catalog_search(
         category_input=category,
+        scenario=scenario,
+        mode=mode,
+        client_ip=client_ip
+    )
+    return jsonify(result)
+
+@app.route("/api/error-blind/query", methods=["POST"])
+def api_error_blind_query():
+    """API endpoint to execute an error-based or blind inference query against MySQL."""
+    data = request.get_json() or {}
+    username = data.get("username", "admin")
+    scenario = data.get("scenario", "xpath_error")
+    mode = data.get("mode", "vulnerable")
+    client_ip = request.remote_addr or "127.0.0.1"
+
+    result = execute_error_blind_query(
+        username_input=username,
         scenario=scenario,
         mode=mode,
         client_ip=client_ip
