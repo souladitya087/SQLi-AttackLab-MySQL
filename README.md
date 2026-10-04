@@ -180,6 +180,36 @@ The laboratory provisions a dedicated, segregated MySQL database (`sqli_lab_db`)
     ```
   * Awards: `FLAG{mysql_information_schema_exfiltration_pwned}`.
 
+### Module 3: Error-Based & Blind/Time-Based Inference Lab
+* **Scenario 3.1: XPath Syntax Error Disclosure (`EXTRACTVALUE` / `UPDATEXML`)**:
+  * Trigger MySQL Error 1105 by passing an invalid XPath expression starting with a non-XPath token (`0x7e` / `~`):
+    ```sql
+    admin' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT @@version), 0x7e)) -- 
+    ```
+  * MySQL parses the subquery, encounters syntax error `XPATH syntax error: '~8.0.46~'`, and reflects query results inside the error message.
+  * Extract confidential flag from `system_secrets` (handling MySQL's 32-character buffer truncation with `SUBSTRING()` windowing):
+    ```sql
+    admin' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT secret_value FROM system_secrets WHERE secret_name='FLAG_BLIND_EXPLOIT'), 0x7e)) -- 
+    ```
+* **Scenario 3.2: Boolean-Based Blind Inference Oracle**:
+  * Turn the user lookup query into a True/False oracle when error output and result projections are disabled:
+    ```sql
+    admin' AND ASCII(SUBSTRING((SELECT database()), 1, 1)) = 115 -- 
+    ```
+  * Predicate evaluations:
+    * `TRUE`: MySQL returns the user record (1 row).
+    * `FALSE`: MySQL returns empty results (0 rows).
+  * Algorithmic binary search (`ASCII(...) > 100`) extracts characters in $\approx 7$ requests per character.
+* **Scenario 3.3: Time-Based Side-Channel Delays (`SLEEP()` & `BENCHMARK()`)**:
+  * Precision latency testing for completely blind targets where response content is completely uniform:
+    ```sql
+    admin' AND IF(ASCII(SUBSTRING(database(), 1, 1)) = 115, SLEEP(2), 0) -- 
+    ```
+  * If the condition is `TRUE`, MySQL pauses for 2 seconds (response latency $> 2000$ ms); if `FALSE`, it completes immediately ($< 50$ ms).
+* **Scenario 3.4: Challenge Flag Harvest & Parameterized Defense**:
+  * Exfiltrate the challenge flag: `FLAG{mysql_blind_and_error_inference_pwned}`.
+  * Switch to Remediated Mode to verify how parameterized queries treat `EXTRACTVALUE(...)` and `SLEEP(...)` strictly as literal strings, neutralizing all inference channels.
+
 ---
 
 ## 🛡️ Mitigation Analysis: Prepared Statements
