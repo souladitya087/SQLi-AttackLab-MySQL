@@ -19,3 +19,8 @@ ENV/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Video artifacts
+*.mp4
+demo/
+
