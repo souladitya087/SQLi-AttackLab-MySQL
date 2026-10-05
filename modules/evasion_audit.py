@@ -262,9 +262,9 @@ def execute_waf_sandbox_query(
         with conn.cursor() as cursor:
             if mode == "vulnerable":
                 # Insecure query with the allowed/bypassed payload
-                query = f"SELECT id, username, full_name, email, role, api_key FROM users WHERE username = {payload}"
-                # If payload doesn't start with quote or hex or select, wrap in single quotes if normal
-                if not any(payload.startswith(p) for p in ["'", '"', "0x", "(", "SELECT", "select"]):
+                if payload.startswith("0x"):
+                    query = f"SELECT id, username, full_name, email, role, api_key FROM users WHERE username = {payload}"
+                else:
                     query = f"SELECT id, username, full_name, email, role, api_key FROM users WHERE username = '{payload}'"
 
                 result["constructed_query"] = query
@@ -277,8 +277,8 @@ def execute_waf_sandbox_query(
 
                 # Check if filter was evaded with an active injection construct
                 evasion_techniques = [
-                    filter_profile == "spaces" and "/**/" in payload,
-                    filter_profile == "keywords" and ("uNiOn" in payload or "UNI/**/ON" in payload or "SeLeCt" in payload),
+                    filter_profile == "spaces" and ("/**/" in payload or "\t" in payload),
+                    filter_profile == "keywords" and bool(re.search(r"union|select", payload, re.IGNORECASE)),
                     filter_profile == "quotes" and "0x" in payload
                 ]
 

