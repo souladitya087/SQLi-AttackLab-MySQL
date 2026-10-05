@@ -60,6 +60,17 @@ def init_database():
     );
     """)
 
+    print("[*] Creating table 'user_profiles' (for Second-Order SQLi)...")
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS `user_profiles` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `username` VARCHAR(50) NOT NULL UNIQUE,
+        `display_name` VARCHAR(100) NOT NULL,
+        `bio` TEXT,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
     print("[*] Creating table 'query_audit_logs'...")
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS `query_audit_logs` (
@@ -104,6 +115,19 @@ def init_database():
     VALUES (%s, %s, %s, %s, %s, %s);
     """, products_data)
 
+    # Seed user profiles (for Second-Order SQLi)
+    print("[*] Seeding user profile records...")
+    cursor.execute("TRUNCATE TABLE `user_profiles`;")
+    profiles_data = [
+        ('john_doe', 'Johnny D', 'Standard member account.'),
+        ('alice_smith', 'Alice S', 'Security analyst team.'),
+        ('financial_auditor', 'Finance Auditor', 'Quarterly compliance inspector.')
+    ]
+    cursor.executemany("""
+    INSERT INTO `user_profiles` (`username`, `display_name`, `bio`)
+    VALUES (%s, %s, %s);
+    """, profiles_data)
+
     # Seed secrets
     print("[*] Seeding secrets and challenge flags...")
     cursor.execute("TRUNCATE TABLE `system_secrets`;")
@@ -111,6 +135,8 @@ def init_database():
         ('FLAG_AUTH_BYPASS', 'FLAG{mysql_auth_tautology_bypass_mastered}', 'RESTRICTED'),
         ('FLAG_UNION_EXPLOIT', 'FLAG{mysql_information_schema_exfiltration_pwned}', 'TOP_SECRET'),
         ('FLAG_BLIND_EXPLOIT', 'FLAG{mysql_blind_and_error_inference_pwned}', 'TOP_SECRET'),
+        ('FLAG_SECOND_ORDER', 'FLAG{mysql_second_order_stored_sqli_pwned}', 'TOP_SECRET'),
+        ('FLAG_WAF_EVASION', 'FLAG{mysql_waf_filter_bypass_mastered}', 'TOP_SECRET'),
         ('ROOT_DATABASE_MASTER_TOKEN', 'tok_sec_mysql80_4981948194819481948', 'CRITICAL'),
         ('MOCK_PAYMENT_GATEWAY_KEY', 'tok_mock_payment_sample_secret_key_9481948', 'CRITICAL')
     ]
