@@ -1,70 +1,882 @@
 {% extends "base.html" %}
 
-{% block title %}Module 4: Filter Evasion & SAST | SQLi-AttackLab (MySQL){% endblock %}
+{% block title %}Module 4: Filter Evasion, Second-Order & SAST | SQLi-AttackLab (MySQL){% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="space-y-6">
 
-    <div class="pb-4 border-b border-gray-800 flex items-center justify-between">
+    <!-- Header & Scenario Badges -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-800">
         <div>
             <div class="flex items-center space-x-2">
-                <span class="text-xs font-bold px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 uppercase font-mono">Module 4</span>
-                <span class="text-xs text-gray-400 font-mono">In Development</span>
+                <span class="text-xs font-bold px-2.5 py-0.5 rounded bg-purple-500 text-white uppercase font-mono">Module 4</span>
+                <span class="text-xs text-purple-400 font-mono">Defense Engineering & Advanced Vectors</span>
             </div>
             <h1 class="text-2xl font-black text-white mt-1">WAF Evasion, Second-Order SQLi & SAST Remediation</h1>
-            <p class="text-xs text-gray-400 mt-0.5">Bypass naive signature filters, test second-order storage flaws, and run static code analysis.</p>
+            <p class="text-xs text-gray-400 mt-0.5">Explore stored second-order execution, bypass naive WAF filters, run static code analysis, and generate compliance reports.</p>
         </div>
-        <a href="/lab/auth-bypass" class="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold text-xs transition">
-            Launch Module 1 Lab &rarr;
-        </a>
+
+        <!-- Mode Toggle (Vulnerable vs Remediated) -->
+        <div class="flex items-center bg-gray-900 p-1.5 rounded-xl border border-gray-800 space-x-1">
+            <button id="mode-vuln" onclick="setMode('vulnerable')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                <span>Vulnerable (Dynamic)</span>
+            </button>
+            <button id="mode-secure" onclick="setMode('secure')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-gray-400 hover:text-gray-200">
+                <span class="w-2 h-2 rounded-full bg-gray-600"></span>
+                <span>Remediated (Prepared)</span>
+            </button>
+        </div>
     </div>
 
-    <!-- Syllabus & Architecture Plan Card -->
-    <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-6">
-        <h2 class="text-lg font-bold text-white flex items-center space-x-2">
-            <i data-lucide="shield-check" class="w-5 h-5 text-purple-400"></i>
-            <span>Module 4 Architecture & Defense Vectors</span>
-        </h2>
+    <!-- Main Section Tabs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <button onclick="switchTab('second_order')" id="tab-btn-second_order" class="p-3.5 rounded-xl text-left border transition bg-purple-500/10 border-purple-500/40 text-purple-400">
+            <div class="text-[10px] font-mono font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Phase 4.1</span>
+                <i data-lucide="database" class="w-3.5 h-3.5"></i>
+            </div>
+            <div class="text-sm font-bold text-white">Second-Order SQLi</div>
+            <div class="text-xs text-gray-400 mt-0.5 truncate">Safe storage, delayed execution</div>
+        </button>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-purple-400">Section 4.1</div>
-                <div class="text-sm font-bold text-white">Second-Order Stored Injection</div>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    Injecting a payload that stores safely in registration, but executes maliciously when later read by an administrative report query.
-                </p>
+        <button onclick="switchTab('waf_sandbox')" id="tab-btn-waf_sandbox" class="p-3.5 rounded-xl text-left border border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 transition">
+            <div class="text-[10px] font-mono font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Phase 4.2</span>
+                <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+            </div>
+            <div class="text-sm font-bold text-gray-200">WAF Filter Evasion</div>
+            <div class="text-xs text-gray-500 mt-0.5 truncate">Spaces, keywords & hex bypasses</div>
+        </button>
+
+        <button onclick="switchTab('sast_auditor')" id="tab-btn-sast_auditor" class="p-3.5 rounded-xl text-left border border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 transition">
+            <div class="text-[10px] font-mono font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Phase 4.3</span>
+                <i data-lucide="code" class="w-3.5 h-3.5"></i>
+            </div>
+            <div class="text-sm font-bold text-gray-200">SAST Code Auditor</div>
+            <div class="text-xs text-gray-500 mt-0.5 truncate">Linter & auto-fix generator</div>
+        </button>
+
+        <button onclick="switchTab('audit_report')" id="tab-btn-audit_report" class="p-3.5 rounded-xl text-left border border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 transition">
+            <div class="text-[10px] font-mono font-bold uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Phase 4.4</span>
+                <i data-lucide="file-check" class="w-3.5 h-3.5"></i>
+            </div>
+            <div class="text-sm font-bold text-gray-200">Compliance Report</div>
+            <div class="text-xs text-gray-500 mt-0.5 truncate">OWASP Top 10 assessment</div>
+        </button>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 1: SECOND-ORDER SQL INJECTION                        -->
+    <!-- ======================================================== -->
+    <div id="section-second_order" class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left: 2-Step Flow Form (5 cols) -->
+            <div class="lg:col-span-5 space-y-4">
+                
+                <!-- Step 1: Storage -->
+                <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-3 shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                            <span class="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 text-xs flex items-center justify-center font-bold">1</span>
+                            <span>First-Order: Profile Registration</span>
+                        </h3>
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">SAFE PARAMETERIZED INSERT</span>
+                    </div>
+                    <p class="text-xs text-gray-400">The payload is safely stored in the database without triggering any syntax errors during INSERT.</p>
+
+                    <form onsubmit="handleSaveProfile(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-[11px] font-mono text-gray-300 mb-1">Target Account Username</label>
+                            <input type="text" id="so-username" value="attacker_user" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg px-3 py-2 text-xs text-cyan-400 code-font focus:outline-none focus:border-cyan-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-mono text-gray-300 mb-1">Display Name (Stored Payload)</label>
+                            <input type="text" id="so-displayname" value="admin' -- " class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg px-3 py-2 text-xs text-yellow-300 code-font focus:outline-none focus:border-cyan-500" required>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="insertSoPayload('admin\' -- ')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-gray-300 hover:text-white code-font">admin' -- </button>
+                            <button type="button" onclick="insertSoPayload('admin\' #')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-gray-300 hover:text-white code-font">admin' #</button>
+                            <button type="button" onclick="insertSoPayload('\' OR \'1\'=\'1')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-gray-300 hover:text-white code-font">' OR '1'='1</button>
+                        </div>
+                        <button type="submit" id="btn-save-profile" class="w-full py-2 px-3 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold text-xs transition border border-gray-700 flex items-center justify-center space-x-1.5">
+                            <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                            <span>Save Profile Record</span>
+                        </button>
+                    </form>
+                    <div id="save-status" class="text-[11px] font-mono text-emerald-400 hidden"></div>
+                </div>
+
+                <!-- Step 2: Triggering Execution -->
+                <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-3 shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                            <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 text-xs flex items-center justify-center font-bold">2</span>
+                            <span>Second-Order: Trigger Security Audit</span>
+                        </h3>
+                        <span id="so-badge-mode" class="text-[10px] px-2 py-0.5 rounded font-mono font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">VULNERABLE READ</span>
+                    </div>
+                    <p class="text-xs text-gray-400">The backend reads the previously stored display name and concatenates it into an administrative credential lookup query!</p>
+
+                    <button onclick="handleTriggerAudit()" id="btn-trigger-audit" class="w-full py-2.5 px-4 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition flex items-center justify-center space-x-2 shadow-lg shadow-purple-600/20">
+                        <i data-lucide="zap" class="w-4 h-4 fill-current"></i>
+                        <span>Trigger Secondary SQL Query</span>
+                    </button>
+                </div>
+
             </div>
 
-            <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-purple-400">Section 4.2</div>
-                <div class="text-sm font-bold text-white">WAF Filter Evasion Sandbox</div>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    Testing techniques to circumvent regex filters: whitespace substitution (`/**/`, `%09`), keyword splitting, and hex/URL encoding.
-                </p>
+            <!-- Right: Results & Execution Inspector (7 cols) -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-4 shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                            <i data-lucide="terminal" class="w-4 h-4 text-purple-400"></i>
+                            <span>Secondary Query Execution Inspector</span>
+                        </h3>
+                        <span id="so-exec-time" class="text-xs font-mono text-gray-400">0.00 ms</span>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-[#070b13] border border-gray-800 space-y-1">
+                        <div class="text-[11px] font-mono text-gray-500 flex items-center justify-between">
+                            <span>SECONDARY QUERY SENT TO MYSQL:</span>
+                            <span id="so-query-badge" class="text-rose-400 font-bold text-[10px]">DYNAMIC READ CONCATENATION</span>
+                        </div>
+                        <div id="so-query-display" class="code-font text-xs text-yellow-300 break-all leading-relaxed">
+                            SELECT id, username, full_name, email, role, api_key FROM users WHERE username = ''
+                        </div>
+                    </div>
+
+                    <!-- Flag card -->
+                    <div id="so-flag-card" class="hidden p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-300 font-mono flex items-center space-x-1.5">
+                                <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+                                <span>Second-Order Exploit Successful!</span>
+                            </span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500 text-gray-950">FLAG UNLOCKED</span>
+                        </div>
+                        <div class="text-[11px] text-gray-300">Target administrator credentials exfiltrated via deferred execution:</div>
+                        <div id="so-flag-text" class="text-xs font-mono font-black text-amber-300 bg-black/40 px-3 py-1.5 rounded border border-amber-500/30 select-all">
+                            FLAG{mysql_second_order_stored_sqli_pwned}
+                        </div>
+                    </div>
+
+                    <!-- Output Records -->
+                    <div class="space-y-2">
+                        <div class="text-xs font-bold text-gray-400">Returned Records:</div>
+                        <div class="overflow-x-auto border border-gray-800 rounded-xl max-h-56">
+                            <table class="w-full text-left text-xs font-mono">
+                                <thead class="bg-gray-950 text-gray-400 text-[10px] uppercase border-b border-gray-800">
+                                    <tr>
+                                        <th class="p-2">ID</th>
+                                        <th class="p-2">Username</th>
+                                        <th class="p-2">Role</th>
+                                        <th class="p-2">Email</th>
+                                        <th class="p-2">API Key</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="so-results-body" class="divide-y divide-gray-800 text-gray-300 bg-[#090d16]">
+                                    <tr><td colspan="5" class="p-3 text-center text-gray-500">Trigger secondary query to inspect execution.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-gray-950/50 border border-gray-800 text-xs text-gray-300 leading-relaxed">
+                        <span class="font-bold text-gray-400">Technical Breakdown: </span>
+                        <span id="so-explanation">Developers often assume that data already inside the database is "trusted" and safe to concatenate into queries. Second-order injection exploits this trust gap.</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-purple-400">Section 4.3</div>
-                <div class="text-sm font-bold text-white">Static Code Analyzer (SAST Auditor)</div>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    A code linter tool where developers paste raw SQL queries; flags concatenation vulnerabilities and auto-converts to prepared statements.
-                </p>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 2: WAF & FILTER EVASION SANDBOX                      -->
+    <!-- ======================================================== -->
+    <div id="section-waf_sandbox" class="hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left: WAF Rules & Payload Input (5 cols) -->
+            <div class="lg:col-span-5 space-y-4">
+                <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-4 shadow-xl">
+                    <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                        <i data-lucide="shield-alert" class="w-4 h-4 text-cyan-400"></i>
+                        <span>WAF Signature Filter Configuration</span>
+                    </h3>
+
+                    <!-- Filter Rules Radio -->
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center space-x-2.5 p-2 rounded-lg bg-gray-950 border border-gray-800 cursor-pointer hover:border-gray-700 transition">
+                            <input type="radio" name="waf_filter" value="spaces" checked onchange="handleFilterChange('spaces')" class="text-cyan-500 focus:ring-0">
+                            <div>
+                                <div class="font-bold text-white">Whitespace Filter (\s)</div>
+                                <div class="text-[11px] text-gray-400">Blocks spaces. Bypass using inline comments <code>/**/</code>.</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center space-x-2.5 p-2 rounded-lg bg-gray-950 border border-gray-800 cursor-pointer hover:border-gray-700 transition">
+                            <input type="radio" name="waf_filter" value="keywords" onchange="handleFilterChange('keywords')" class="text-cyan-500 focus:ring-0">
+                            <div>
+                                <div class="font-bold text-white">Strict Keyword Filter (UNION / SELECT)</div>
+                                <div class="text-[11px] text-gray-400">Blocks exact keywords. Bypass with mixed casing <code>uNiOn</code> or splitting <code>UNI/**/ON</code>.</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center space-x-2.5 p-2 rounded-lg bg-gray-950 border border-gray-800 cursor-pointer hover:border-gray-700 transition">
+                            <input type="radio" name="waf_filter" value="quotes" onchange="handleFilterChange('quotes')" class="text-cyan-500 focus:ring-0">
+                            <div>
+                                <div class="font-bold text-white">Quote Stripper (' and ")</div>
+                                <div class="text-[11px] text-gray-400">Blocks quotes. Bypass using hexadecimal string literals <code>0x61646d696e</code>.</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Payload Input -->
+                    <div class="space-y-2 pt-2 border-t border-gray-800">
+                        <label class="block text-xs font-medium text-gray-300">Attack Payload</label>
+                        <input type="text" id="waf-payload" value="'/**/OR/**/1=1/**/--/**/" class="w-full bg-[#0b0f19] border border-gray-700 rounded-lg px-3 py-2 text-xs text-cyan-400 code-font focus:outline-none focus:border-cyan-500" required>
+                    </div>
+
+                    <!-- Quick buttons -->
+                    <div class="space-y-1.5" id="waf-quick-buttons">
+                        <div class="text-[11px] font-semibold text-gray-400">Bypass Payloads:</div>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button type="button" onclick="setWafPayload('\'/**/OR/**/1=1/**/--/**/')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-cyan-300 hover:bg-gray-700 code-font">'/**/OR/**/1=1/**/--/**/</button>
+                            <button type="button" onclick="setWafPayload('\'/**/OR/**/\'1\'=\'1')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-cyan-300 hover:bg-gray-700 code-font">'/**/OR/**/'1'='1</button>
+                            <button type="button" onclick="setWafPayload('0x61646d696e')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-yellow-300 hover:bg-gray-700 code-font">0x61646d696e (Hex admin)</button>
+                            <button type="button" onclick="setWafPayload('\'/**/uNiOn/**/sElEcT/**/1,2,3,4,5,6/**/--/**/')" class="text-[10px] px-2 py-1 rounded bg-gray-800 text-purple-300 hover:bg-gray-700 code-font">uNiOn sElEcT</button>
+                        </div>
+                    </div>
+
+                    <button onclick="handleExecuteWaf()" id="btn-waf-test" class="w-full py-2.5 px-4 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-gray-950 font-bold text-xs transition flex items-center justify-center space-x-2">
+                        <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                        <span>Inspect & Transmit to MySQL</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-2">
-                <div class="text-xs font-mono font-bold text-purple-400">Section 4.4</div>
-                <div class="text-sm font-bold text-white">Audit Report & Certification Generator</div>
-                <p class="text-xs text-gray-400 leading-relaxed">
-                    Compiles vulnerability assessment findings, compliant with OWASP Top 10 A03:2021-Injection standards.
-                </p>
+            <!-- Right: Inspection & Engine Outcome (7 cols) -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-4 shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                            <i data-lucide="cpu" class="w-4 h-4 text-cyan-400"></i>
+                            <span>WAF Gate & Execution Result</span>
+                        </h3>
+                        <span id="waf-exec-time" class="text-xs font-mono text-gray-400">0.00 ms</span>
+                    </div>
+
+                    <!-- WAF Filter Decision Banner -->
+                    <div id="waf-decision-banner" class="p-3.5 rounded-xl border flex items-center justify-between bg-gray-800/40 border-gray-700 text-gray-300">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="shield" id="waf-icon" class="w-5 h-5 text-gray-400"></i>
+                            <div>
+                                <div id="waf-heading" class="text-xs font-bold text-white">Awaiting Payload Inspection</div>
+                                <div id="waf-sub" class="text-[11px] text-gray-400">Submit a payload to test against the active WAF profile.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flag Banner if Evasion Successful -->
+                    <div id="waf-flag-card" class="hidden p-4 rounded-xl bg-amber-950/30 border border-amber-500/40 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-300 font-mono flex items-center space-x-1.5">
+                                <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+                                <span>WAF Filter Evasion Accomplished!</span>
+                            </span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500 text-gray-950">FLAG UNLOCKED</span>
+                        </div>
+                        <div class="text-[11px] text-gray-300">The injection payload successfully bypassed the regex signature and executed in MySQL:</div>
+                        <div id="waf-flag-text" class="text-xs font-mono font-black text-amber-300 bg-black/40 px-3 py-1.5 rounded border border-amber-500/30 select-all">
+                            FLAG{mysql_waf_filter_bypass_mastered}
+                        </div>
+                    </div>
+
+                    <!-- Executed query -->
+                    <div class="p-3 rounded-xl bg-[#070b13] border border-gray-800 space-y-1">
+                        <div class="text-[10px] font-mono text-gray-500">SENT TO MYSQL:</div>
+                        <div id="waf-query-display" class="code-font text-xs text-yellow-300 break-all leading-relaxed whitespace-pre-wrap">
+                            -- No query executed yet
+                        </div>
+                    </div>
+
+                    <!-- Returned records -->
+                    <div class="space-y-1.5">
+                        <div class="text-xs font-bold text-gray-400">Returned Rows:</div>
+                        <div class="overflow-x-auto border border-gray-800 rounded-xl max-h-48">
+                            <table class="w-full text-left text-xs font-mono">
+                                <thead class="bg-gray-950 text-gray-400 text-[10px] uppercase border-b border-gray-800">
+                                    <tr>
+                                        <th class="p-2">ID</th>
+                                        <th class="p-2">Username</th>
+                                        <th class="p-2">Role</th>
+                                        <th class="p-2">Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="waf-results-body" class="divide-y divide-gray-800 text-gray-300 bg-[#090d16]">
+                                    <tr><td colspan="4" class="p-3 text-center text-gray-500">No output.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 3: STATIC APPLICATION SECURITY TESTING (SAST)        -->
+    <!-- ======================================================== -->
+    <div id="section-sast_auditor" class="hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left: Code Input & Pre-loaded Snippets (6 cols) -->
+            <div class="lg:col-span-6 space-y-4">
+                <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-3 shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                            <i data-lucide="file-code" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Developer Query Code Editor</span>
+                        </h3>
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-gray-800 text-gray-300 font-mono">Python / SQL</span>
+                    </div>
+
+                    <!-- Preset sample buttons -->
+                    <div class="flex flex-wrap gap-1.5 text-xs">
+                        <span class="text-gray-400 text-[11px] py-1">Presets:</span>
+                        <button type="button" onclick="loadSampleSnippet('fstring')" class="text-[10px] px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-200 font-mono">f-string query</button>
+                        <button type="button" onclick="loadSampleSnippet('plus')" class="text-[10px] px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-200 font-mono">+ Concat query</button>
+                        <button type="button" onclick="loadSampleSnippet('percent')" class="text-[10px] px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-200 font-mono">% Formatting</button>
+                    </div>
+
+                    <textarea id="sast-code-input" rows="8" class="w-full bg-[#070b13] border border-gray-700 rounded-xl p-3 text-xs text-yellow-300 code-font focus:outline-none focus:border-emerald-500 leading-relaxed" placeholder="Paste Python/SQL code here..."></textarea>
+
+                    <button onclick="handleRunSastAudit()" id="btn-run-sast" class="w-full py-2.5 px-4 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold text-xs transition flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20">
+                        <i data-lucide="scan" class="w-4 h-4"></i>
+                        <span>Scan for Insecure SQL Concatenation (SAST)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right: Vulnerability Findings & Auto-Fix (6 cols) -->
+            <div class="lg:col-span-6 space-y-4">
+                <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-4 shadow-xl">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Audit Findings & Auto-Remediation</span>
+                        </h3>
+                        <span id="sast-findings-count" class="text-xs px-2 py-0.5 rounded font-mono font-bold bg-gray-800 text-gray-400">0 Findings</span>
+                    </div>
+
+                    <!-- Findings container -->
+                    <div id="sast-findings-list" class="space-y-2">
+                        <div class="p-3 text-center text-xs text-gray-500 bg-[#070b13] rounded-xl border border-gray-800">
+                            Run a scan on the left to detect vulnerable concatenation patterns.
+                        </div>
+                    </div>
+
+                    <!-- Auto-Fix Box -->
+                    <div class="space-y-1.5 pt-2 border-t border-gray-800">
+                        <div class="text-xs font-bold text-emerald-400 flex items-center space-x-1.5">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                            <span>Auto-Remediated Code (Prepared Statement):</span>
+                        </div>
+                        <pre id="sast-auto-fix" class="p-3 rounded-xl bg-[#070b13] border border-emerald-500/30 text-xs text-emerald-300 font-mono overflow-x-auto whitespace-pre-wrap">-- Remediation will generate here upon scan</pre>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 4: OWASP COMPLIANCE AUDIT REPORT                     -->
+    <!-- ======================================================== -->
+    <div id="section-audit_report" class="hidden space-y-6">
+        <div class="p-6 rounded-2xl bg-gray-900 border border-gray-800 space-y-5 shadow-xl">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-gray-800">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+                        <i data-lucide="clipboard-check" class="w-5 h-5 text-emerald-400"></i>
+                        <span>System Security Assessment & Compliance Report</span>
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-0.5">Comprehensive audit results compiled from all 4 laboratory modules against OWASP and CWE standards.</p>
+                </div>
+                <button onclick="handleFetchReport()" class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-gray-950 font-bold text-xs transition flex items-center space-x-1.5">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                    <span>Generate Live Report</span>
+                </button>
+            </div>
+
+            <!-- Report Body -->
+            <div id="report-content" class="space-y-4">
+                <div class="p-6 text-center text-xs text-gray-500 font-mono">
+                    Click "Generate Live Report" to aggregate database query telemetry.
+                </div>
             </div>
         </div>
+    </div>
 
-        <div class="p-4 rounded-xl bg-purple-950/20 border border-purple-500/20 text-xs text-purple-300 flex items-center space-x-3">
-            <i data-lucide="info" class="w-5 h-5 flex-shrink-0"></i>
-            <span>Module 4 defensive and evasion components are staged. You can run the live <strong>Module 1: Authentication Bypass Lab</strong> immediately.</span>
+    <!-- Live Database Query Audit Logs (MySQL Table Viewer) -->
+    <div class="p-5 rounded-2xl bg-gray-900 border border-gray-800 space-y-3">
+        <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                <i data-lucide="list-ordered" class="w-4 h-4 text-purple-400"></i>
+                <span>MySQL Security Audit Log (Table: `query_audit_logs`)</span>
+            </h3>
+            <button onclick="fetchAuditLogs()" class="text-xs text-gray-400 hover:text-purple-400 transition flex items-center space-x-1 font-mono">
+                <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                <span>Refresh Log</span>
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border border-gray-800 rounded-lg overflow-hidden">
+                <thead class="bg-gray-950 text-gray-400 font-mono text-[11px] uppercase border-b border-gray-800">
+                    <tr>
+                        <th class="p-2.5">ID</th>
+                        <th class="p-2.5">Module</th>
+                        <th class="p-2.5">Executed Query</th>
+                        <th class="p-2.5">Parameterized</th>
+                        <th class="p-2.5">Status</th>
+                        <th class="p-2.5">Time</th>
+                    </tr>
+                </thead>
+                <tbody id="audit-table-body" class="divide-y divide-gray-800 font-mono text-gray-300">
+                    <tr>
+                        <td colspan="6" class="p-4 text-center text-gray-500">Loading audit history from MySQL...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentMode = 'vulnerable';
+    let currentActiveTab = 'second_order';
+    let activeWafProfile = 'spaces';
+
+    function setMode(mode) {
+        currentMode = mode;
+        const vulnBtn = document.getElementById('mode-vuln');
+        const secBtn = document.getElementById('mode-secure');
+        const soBadge = document.getElementById('so-badge-mode');
+        const soQBadge = document.getElementById('so-query-badge');
+
+        if (mode === 'vulnerable') {
+            vulnBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-rose-500/20 text-rose-400 border border-rose-500/30";
+            secBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-gray-400 hover:text-gray-200";
+            if (soBadge) {
+                soBadge.innerText = "VULNERABLE READ";
+                soBadge.className = "text-[10px] px-2 py-0.5 rounded font-mono font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+            }
+            if (soQBadge) {
+                soQBadge.innerText = "DYNAMIC READ CONCATENATION";
+                soQBadge.className = "text-rose-400 font-bold text-[10px]";
+            }
+        } else {
+            vulnBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 text-gray-400 hover:text-gray-200";
+            secBtn.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+            if (soBadge) {
+                soBadge.innerText = "REMEDIATED READ";
+                soBadge.className = "text-[10px] px-2 py-0.5 rounded font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            }
+            if (soQBadge) {
+                soQBadge.innerText = "PARAMETERIZED QUERY";
+                soQBadge.className = "text-emerald-400 font-bold text-[10px]";
+            }
+        }
+    }
+
+    function switchTab(tabId) {
+        currentActiveTab = tabId;
+        const tabs = ['second_order', 'waf_sandbox', 'sast_auditor', 'audit_report'];
+        tabs.forEach(t => {
+            const sec = document.getElementById(`section-${t}`);
+            const btn = document.getElementById(`tab-btn-${t}`);
+            if (t === tabId) {
+                sec.classList.remove('hidden');
+                btn.className = "p-3.5 rounded-xl text-left border transition bg-purple-500/10 border-purple-500/40 text-purple-400";
+            } else {
+                sec.classList.add('hidden');
+                btn.className = "p-3.5 rounded-xl text-left border border-gray-800 bg-gray-900 text-gray-400 hover:border-gray-700 transition";
+            }
+        });
+        lucide.createIcons();
+    }
+
+    // ---------------------------------------------------------
+    // Second-Order SQLi Handlers
+    // ---------------------------------------------------------
+    function insertSoPayload(payload) {
+        document.getElementById('so-displayname').value = payload;
+    }
+
+    async function handleSaveProfile(e) {
+        e.preventDefault();
+        const username = document.getElementById('so-username').value;
+        const displayName = document.getElementById('so-displayname').value;
+        const statusDiv = document.getElementById('save-status');
+
+        const resp = await fetch('/api/profile/save', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ username, display_name: displayName, bio: 'Second-order test bio' })
+        });
+        const data = await resp.json();
+        statusDiv.classList.remove('hidden');
+        if (data.success) {
+            statusDiv.className = "text-[11px] font-mono text-emerald-400";
+            statusDiv.innerText = `[✓] Stored: '${displayName}' saved for '${username}'.`;
+        } else {
+            statusDiv.className = "text-[11px] font-mono text-rose-400";
+            statusDiv.innerText = `[!] Error: ${data.error}`;
+        }
+    }
+
+    async function handleTriggerAudit() {
+        const username = document.getElementById('so-username').value;
+        const btn = document.getElementById('btn-trigger-audit');
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Triggering Secondary Query...</span>`;
+        lucide.createIcons();
+
+        try {
+            const resp = await fetch('/api/profile/audit', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ username, mode: currentMode })
+            });
+            const data = await resp.json();
+            renderSoResult(data);
+            fetchAuditLogs();
+        } catch (err) {
+            alert("Error triggering audit: " + err);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="zap" class="w-4 h-4 fill-current"></i><span>Trigger Secondary SQL Query</span>`;
+            lucide.createIcons();
+        }
+    }
+
+    function renderSoResult(data) {
+        document.getElementById('so-exec-time').innerText = `${data.execution_time_ms} ms`;
+        document.getElementById('so-query-display').innerText = data.constructed_query || '--';
+        document.getElementById('so-explanation').innerText = data.explanation || '';
+
+        const flagCard = document.getElementById('so-flag-card');
+        const flagText = document.getElementById('so-flag-text');
+        if (data.flag) {
+            flagCard.classList.remove('hidden');
+            flagText.innerText = data.flag;
+        } else {
+            flagCard.classList.add('hidden');
+        }
+
+        const tbody = document.getElementById('so-results-body');
+        tbody.innerHTML = '';
+        if (data.results && data.results.length > 0) {
+            data.results.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-800/40 transition " + (r.role === 'admin' ? 'bg-amber-950/20 text-amber-300 font-bold' : '');
+                tr.innerHTML = `
+                    <td class="p-2 text-gray-500">${r.id}</td>
+                    <td class="p-2 text-white">${r.username}</td>
+                    <td class="p-2"><span class="px-1.5 py-0.5 rounded text-[10px] ${r.role === 'admin' ? 'bg-rose-500/20 text-rose-400' : 'bg-gray-800 text-gray-300'}">${r.role}</span></td>
+                    <td class="p-2 text-gray-400">${r.email}</td>
+                    <td class="p-2 text-purple-300 font-mono text-[11px] truncate max-w-xs">${r.api_key}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-500">${data.error || '0 rows matched.'}</td></tr>`;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // WAF Sandbox Handlers
+    // ---------------------------------------------------------
+    function handleFilterChange(profile) {
+        activeWafProfile = profile;
+        if (profile === 'spaces') {
+            document.getElementById('waf-payload').value = "'/**/OR/**/1=1/**/--/**/";
+        } else if (profile === 'keywords') {
+            document.getElementById('waf-payload').value = "'/**/uNiOn/**/sElEcT/**/1,2,3,4,5,6/**/--/**/";
+        } else if (profile === 'quotes') {
+            document.getElementById('waf-payload').value = "0x61646d696e";
+        }
+    }
+
+    function setWafPayload(payload) {
+        document.getElementById('waf-payload').value = payload;
+    }
+
+    async function handleExecuteWaf() {
+        const payload = document.getElementById('waf-payload').value;
+        const btn = document.getElementById('btn-waf-test');
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Inspecting...</span>`;
+        lucide.createIcons();
+
+        try {
+            const resp = await fetch('/api/waf/test', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    payload,
+                    filter_profile: activeWafProfile,
+                    mode: currentMode
+                })
+            });
+            const data = await resp.json();
+            renderWafResult(data);
+            fetchAuditLogs();
+        } catch (err) {
+            alert("Error in WAF test: " + err);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="play" class="w-4 h-4 fill-current"></i><span>Inspect & Transmit to MySQL</span>`;
+            lucide.createIcons();
+        }
+    }
+
+    function renderWafResult(data) {
+        document.getElementById('waf-exec-time').innerText = `${data.execution_time_ms} ms`;
+        document.getElementById('waf-query-display').innerText = data.constructed_query || '--';
+
+        const banner = document.getElementById('waf-decision-banner');
+        const heading = document.getElementById('waf-heading');
+        const sub = document.getElementById('waf-sub');
+        const flagCard = document.getElementById('waf-flag-card');
+        const flagText = document.getElementById('waf-flag-text');
+
+        if (data.waf_blocked) {
+            banner.className = "p-3.5 rounded-xl border flex items-center justify-between bg-rose-950/40 border-rose-500/40 text-rose-300";
+            heading.innerText = "WAF BLOCKED: Signature Rule Matched";
+            sub.innerText = data.waf_matched_rule;
+            flagCard.classList.add('hidden');
+        } else {
+            banner.className = "p-3.5 rounded-xl border flex items-center justify-between bg-emerald-950/40 border-emerald-500/40 text-emerald-300";
+            heading.innerText = "WAF ALLOWED: Signature Filter Bypassed";
+            sub.innerText = data.explanation;
+
+            if (data.flag) {
+                flagCard.classList.remove('hidden');
+                flagText.innerText = data.flag;
+            } else {
+                flagCard.classList.add('hidden');
+            }
+        }
+
+        const tbody = document.getElementById('waf-results-body');
+        tbody.innerHTML = '';
+        if (data.results && data.results.length > 0) {
+            data.results.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-2 text-gray-500">${r.id}</td>
+                    <td class="p-2 text-white font-bold">${r.username}</td>
+                    <td class="p-2 text-gray-300">${r.role}</td>
+                    <td class="p-2 text-gray-400">${r.email}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-gray-500">${data.error || '0 rows returned.'}</td></tr>`;
+        }
+        lucide.createIcons();
+    }
+
+    // ---------------------------------------------------------
+    // SAST Code Auditor Handlers
+    // ---------------------------------------------------------
+    const sampleSnippets = {
+        fstring: `# Vulnerable Python login query using f-strings:\nusername = request.form['username']\nquery = f"SELECT * FROM users WHERE username = '{username}'"\ncursor.execute(query)`,
+        plus: `# Insecure string addition (+) concatenation:\nuser_id = request.args.get('id')\nsql = "SELECT id, name, price FROM products WHERE category = " + category\ncursor.execute(sql)`,
+        percent: `# Insecure % string formatting in backend query:\nemail = request.json.get('email')\nsql_stmt = "SELECT * FROM users WHERE email = '%s'" % email\ncursor.execute(sql_stmt)`
+    };
+
+    function loadSampleSnippet(type) {
+        document.getElementById('sast-code-input').value = sampleSnippets[type] || '';
+    }
+
+    // Set initial snippet
+    loadSampleSnippet('fstring');
+
+    async function handleRunSastAudit() {
+        const codeSnippet = document.getElementById('sast-code-input').value;
+        const btn = document.getElementById('btn-run-sast');
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Scanning Code...</span>`;
+        lucide.createIcons();
+
+        try {
+            const resp = await fetch('/api/sast/audit', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ code_snippet: codeSnippet })
+            });
+            const data = await resp.json();
+            renderSastResult(data);
+        } catch (err) {
+            alert("Error in SAST audit: " + err);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="scan" class="w-4 h-4"></i><span>Scan for Insecure SQL Concatenation (SAST)</span>`;
+            lucide.createIcons();
+        }
+    }
+
+    function renderSastResult(data) {
+        const countBadge = document.getElementById('sast-findings-count');
+        const listDiv = document.getElementById('sast-findings-list');
+        const autoFixBox = document.getElementById('sast-auto-fix');
+
+        countBadge.innerText = `${data.total_findings} Finding(s)`;
+        countBadge.className = data.is_vulnerable 
+            ? "text-xs px-2 py-0.5 rounded font-mono font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30"
+            : "text-xs px-2 py-0.5 rounded font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+
+        listDiv.innerHTML = '';
+        if (data.findings && data.findings.length > 0) {
+            data.findings.forEach(f => {
+                const item = document.createElement('div');
+                item.className = "p-3 rounded-xl bg-rose-950/20 border border-rose-500/30 space-y-1";
+                item.innerHTML = `
+                    <div class="flex items-center justify-between text-xs font-bold text-rose-400 font-mono">
+                        <span>Line ${f.line_number}: ${f.vulnerability_type}</span>
+                        <span class="px-1.5 py-0.5 rounded bg-rose-500 text-gray-950 text-[10px] font-black">${f.severity}</span>
+                    </div>
+                    <div class="text-[11px] text-gray-300">${f.description}</div>
+                    <div class="code-font text-[11px] text-yellow-300/90 bg-black/40 p-1.5 rounded">${f.matched_code}</div>
+                `;
+                listDiv.appendChild(item);
+            });
+        } else {
+            listDiv.innerHTML = `
+                <div class="p-3 text-center text-xs text-emerald-400 bg-emerald-950/20 rounded-xl border border-emerald-500/30 font-mono">
+                    [✓] Clean Code: No insecure SQL string formatting patterns detected.
+                </div>
+            `;
+        }
+
+        autoFixBox.innerText = data.auto_remediated_code || '--';
+    }
+
+    // ---------------------------------------------------------
+    // Compliance Report Handler
+    // ---------------------------------------------------------
+    async function handleFetchReport() {
+        const contentDiv = document.getElementById('report-content');
+        contentDiv.innerHTML = `<div class="p-6 text-center text-xs text-gray-400 font-mono">Aggregating audit telemetry from MySQL...</div>`;
+
+        try {
+            const resp = await fetch('/api/compliance/report');
+            const data = await resp.json();
+            
+            contentDiv.innerHTML = `
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="p-3.5 rounded-xl bg-gray-950 border border-gray-800">
+                        <div class="text-gray-500 text-[10px] uppercase font-mono">Total Queries Logged</div>
+                        <div class="text-xl font-black text-white font-mono mt-1">${data.telemetry.total_queries_logged}</div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-gray-950 border border-gray-800">
+                        <div class="text-gray-500 text-[10px] uppercase font-mono">Parameterized Executions</div>
+                        <div class="text-xl font-black text-emerald-400 font-mono mt-1">${data.telemetry.parameterized_executions}</div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-gray-950 border border-gray-800">
+                        <div class="text-gray-500 text-[10px] uppercase font-mono">Vulnerable Dynamic Queries</div>
+                        <div class="text-xl font-black text-rose-400 font-mono mt-1">${data.telemetry.vulnerable_executions}</div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-gray-950 border border-gray-800">
+                        <div class="text-gray-500 text-[10px] uppercase font-mono">Compliance Posture</div>
+                        <div class="text-sm font-black text-cyan-400 font-mono mt-2">${data.posture_score}</div>
+                    </div>
+                </div>
+
+                <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-2">
+                    <div class="text-xs font-bold text-gray-300">Audited Security Standards Alignment:</div>
+                    <ul class="text-xs text-gray-400 font-mono space-y-1">
+                        ${data.standard_alignment.map(s => `<li class="flex items-center space-x-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i><span>${s}</span></li>`).join('')}
+                    </ul>
+                </div>
+
+                <div class="p-4 rounded-xl bg-gray-950 border border-gray-800 space-y-2">
+                    <div class="text-xs font-bold text-gray-300">Mandated Security Remediation Checklist:</div>
+                    <ul class="text-xs text-gray-400 space-y-1">
+                        ${data.key_remediations.map(r => `<li class="flex items-center space-x-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-400"></i><span>${r}</span></li>`).join('')}
+                    </ul>
+                </div>
+
+                <div class="text-[11px] text-gray-500 font-mono text-right">
+                    Report Timestamp: ${data.generated_at}
+                </div>
+            `;
+            lucide.createIcons();
+        } catch (err) {
+            contentDiv.innerHTML = `<div class="p-4 text-center text-xs text-rose-400">Failed to generate report: ${err}</div>`;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // Audit Log Fetcher
+    // ---------------------------------------------------------
+    async function fetchAuditLogs() {
+        try {
+            const resp = await fetch('/api/audit-logs');
+            const data = await resp.json();
+            const tbody = document.getElementById('audit-table-body');
+            tbody.innerHTML = '';
+
+            if (!data.logs || data.logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-3 text-center text-gray-500">No queries executed yet.</td></tr>`;
+                return;
+            }
+
+            data.logs.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-800/50 transition";
+                const isParamBadge = log.is_parameterized 
+                    ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">YES</span>`
+                    : `<span class="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/30">NO</span>`;
+                
+                let statusBadge = `<span class="text-gray-400">${log.execution_status}</span>`;
+                if (log.execution_status === 'SUCCESS') {
+                    statusBadge = `<span class="text-emerald-400 font-bold">SUCCESS</span>`;
+                } else if (log.execution_status === 'MYSQL_ERROR') {
+                    statusBadge = `<span class="text-rose-400 font-bold">ERROR</span>`;
+                } else if (log.execution_status === 'WAF_BLOCKED') {
+                    statusBadge = `<span class="text-rose-500 font-bold">WAF BLOCKED</span>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="p-2.5 text-gray-500">#${log.id}</td>
+                    <td class="p-2.5 text-gray-300 font-medium">${log.lab_module}</td>
+                    <td class="p-2.5 text-yellow-300/90 max-w-xs truncate" title="${log.executed_query}">${log.executed_query}</td>
+                    <td class="p-2.5">${isParamBadge}</td>
+                    <td class="p-2.5">${statusBadge}</td>
+                    <td class="p-2.5 text-gray-500 text-[10px]">${log.timestamp || ''}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (e) {
+            console.error("Failed to load audit logs", e);
+        }
+    }
+
+    // Initial load
+    fetchAuditLogs();
+</script>
 {% endblock %}
