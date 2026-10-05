@@ -136,6 +136,7 @@ The laboratory provisions a dedicated, segregated MySQL database (`sqli_lab_db`)
 | `users` | Primary authentication records | `id`, `username`, `password`, `role`, `email`, `api_key` |
 | `products` | E-commerce catalog for UNION extraction | `id`, `name`, `category`, `price`, `stock`, `description` |
 | `system_secrets` | Restricted flags and tokens for challenges | `id`, `secret_name`, `secret_value`, `classification` |
+| `user_profiles` | Public profile store for Second-Order SQLi | `id`, `username`, `display_name`, `bio`, `updated_at` |
 | `query_audit_logs` | Real-time security telemetry | `id`, `lab_module`, `executed_query`, `is_parameterized`, `execution_status`, `timestamp` |
 
 ---
@@ -210,6 +211,49 @@ The laboratory provisions a dedicated, segregated MySQL database (`sqli_lab_db`)
   * Exfiltrate the challenge flag: `FLAG{mysql_blind_and_error_inference_pwned}`.
   * Switch to Remediated Mode to verify how parameterized queries treat `EXTRACTVALUE(...)` and `SLEEP(...)` strictly as literal strings, neutralizing all inference channels.
 
+### Module 4: Advanced Filter Evasion & Static Code Analysis (SAST) Lab
+* **Scenario 4.1: Second-Order (Stored) SQL Injection**:
+  * **First-Order Storage (Safe INSERT)**: A user registers or updates their public profile with an attack payload in the display name (e.g. `admin' -- ` or `admin' #`). The initial write operation uses prepared statements (`INSERT INTO user_profiles ... VALUES (%s, %s, %s)`), so the payload is safely stored in the database without triggering any error or alert.
+  * **Second-Order Trigger (Insecure Deferred Read)**: When an administrator or background job audits or views user accounts, the application reads the stored display name from `user_profiles` and insecurely interpolates it into a secondary lookup:
+    ```sql
+    SELECT id, username, full_name, email, role, api_key FROM users WHERE username = '{stored_display_name}'
+    ```
+  * **The Exploit**: Because developers falsely assume that data already residing within MySQL is "trusted", the unescaped payload executes as active SQL code, hijacking the query and leaking admin credentials.
+  * **Challenge Flag**: Unlocks `FLAG{mysql_second_order_stored_sqli_pwned}`.
+  * **Defense**: Apply parameterized prepared statements to *all* database interactions, including read queries that handle previously stored values (`WHERE username = %s`).
+
+* **Scenario 4.2: WAF & Signature Filter Evasion Sandbox**:
+  * Real-world Web Application Firewalls (WAFs) rely on pattern-matching regex rules to detect common SQLi signatures. Attackers use syntax variations that MySQL accepts but regex signatures fail to catch:
+    * **Whitespace Filter (`\s+`)**: Blocks space characters. Evaded by using MySQL inline comments `/**/` or tab delimiters:
+      ```sql
+      '/**/OR/**/'1'='1
+      '/**/OR/**/1=1/**/#
+      ```
+    * **Strict Keyword Filter (`\b(UNION|SELECT)\b`)**: Blocks exact uppercase SQL keywords. Evaded using mixed casing or inline comment splitting:
+      ```sql
+      '/**/uNiOn/**/sElEcT/**/1,2,3,4,5,6/**/#
+      '/**/UNI/**/ON/**/SEL/**/ECT/**/1,2,3,4,5,6/**/#
+      ```
+    * **Quote Stripper (`['"]`)**: Strips or blocks quotation marks. Evaded by providing string literals as MySQL hexadecimal values (e.g., `'admin'` represented as `0x61646d696e`):
+      ```sql
+      0x61646d696e
+      ```
+  * **Challenge Flag**: Evading the active WAF filter and executing valid SQL syntax awards `FLAG{mysql_waf_filter_bypass_mastered}`.
+  * **Defense**: Regex filters and blocklists are fundamentally brittle. Parameterized queries enforce mathematical separation between SQL grammar and user data at the database parser level.
+
+* **Scenario 4.3: Static Application Security Testing (SAST) Query Linter**:
+  * Built-in code analyzer that inspects backend Python source code for unsafe SQL string construction patterns:
+    * Python f-strings: `query = f"SELECT * FROM users WHERE id = '{user_id}'"`
+    * `%` formatting operator: `query = "SELECT * FROM users WHERE email = '%s'" % email`
+    * `+` string concatenation: `query = "SELECT * FROM products WHERE cat = " + cat`
+    * `.format()` method calls: `query = "SELECT * FROM users WHERE user = '{}'".format(user)`
+  * Pinpoints the exact line number, explains the vulnerability risk (CWE-89 / OWASP A03), and automatically produces the secure parameterized rewrite using DB-API `%s` bind variables.
+
+* **Scenario 4.4: OWASP A03:2021 & CWE-89 Compliance Reporting**:
+  * Generates an aggregated, real-time security compliance telemetry audit directly from MySQL `query_audit_logs`.
+  * Computes the ratio of parameterized versus vulnerable dynamic queries across all 4 modules.
+  * Formats findings according to OWASP Top 10 A03:2021 (Injection) and NIST SP 800-53 security controls.
+
 ---
 
 ## 🛡️ Mitigation Analysis: Prepared Statements
@@ -236,7 +280,7 @@ cursor.execute(query, (username, password))
 
 ## 🧪 Automated Verification Suite
 
-Run automated unit and integration tests to verify platform stability:
+Run the full end-to-end automated test suite (18 integration tests covering all 4 modules):
 ```bash
 python test_app.py
 ```
